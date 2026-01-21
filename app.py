@@ -247,30 +247,13 @@ df['risk'] = risk
 
 st.write(df.head())
 
-
-
 # ========================= NEW FEATURES ADDED BELOW =========================
 
-# ========================= SIDEBAR NAVIGATION =========================
+# 1) SIDEBAR NAVIGATION
 st.sidebar.title("StaySmart AI")
-nav = st.sidebar.radio("Navigate", ["Dashboard", "Insights", "Settings"])
+page = st.sidebar.radio("Menu", ["Dashboard", "Insights", "Settings"])
 
-if nav == "Dashboard":
-    st.header("📊 Dashboard")
-elif nav == "Insights":
-    st.header("💡 Insights")
-elif nav == "Settings":
-    st.header("⚙️ Settings")
-
-# ========================= FILTERS =========================
-st.sidebar.markdown("## Filters")
-
-if "department" in df.columns:
-    dept = st.sidebar.selectbox("Department", options=["All"] + sorted(df["department"].unique()))
-    if dept != "All":
-        df = df[df["department"] == dept]
-
-# ========================= RISK CATEGORY =========================
+# 2) RISK CATEGORY
 def risk_category(score):
     if score >= 7:
         return "High"
@@ -281,69 +264,65 @@ def risk_category(score):
 
 df["risk_category"] = df["risk"].apply(risk_category)
 
-# ========================= METRICS CARDS =========================
-st.subheader("Key Metrics")
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Total Employees", len(df))
-col2.metric("High Risk", len(df[df["risk_category"] == "High"]))
-col3.metric("Medium Risk", len(df[df["risk_category"] == "Medium"]))
-col4.metric("Low Risk", len(df[df["risk_category"] == "Low"]))
+# 3) FILTER (if department exists)
+if "department" in df.columns:
+    dept = st.sidebar.selectbox("Filter Department", ["All"] + sorted(df["department"].unique()))
+    if dept != "All":
+        df = df[df["department"] == dept]
 
-# ========================= CHARTS =========================
-st.subheader("Visual Insights")
+# 4) DASHBOARD PAGE
+if page == "Dashboard":
+    st.subheader("📊 Dashboard")
 
-fig1, ax1 = plt.subplots()
-df["risk_category"].value_counts().plot.pie(autopct="%1.1f%%", startangle=90, ax=ax1)
-ax1.set_ylabel("")
-ax1.set_title("Risk Category Distribution")
-st.pyplot(fig1)
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Total Employees", len(df))
+    col2.metric("High Risk", len(df[df["risk_category"] == "High"]))
+    col3.metric("Medium Risk", len(df[df["risk_category"] == "Medium"]))
+    col4.metric("Low Risk", len(df[df["risk_category"] == "Low"]))
 
-fig2, ax2 = plt.subplots()
-ax2.hist(df["risk"], bins=10)
-ax2.set_title("Risk Score Distribution")
-ax2.set_xlabel("Risk Score")
-ax2.set_ylabel("Count")
-st.pyplot(fig2)
+    # Charts
+    fig1, ax1 = plt.subplots()
+    df["risk_category"].value_counts().plot.pie(autopct="%1.1f%%", ax=ax1)
+    ax1.set_ylabel("")
+    ax1.set_title("Risk Distribution")
+    st.pyplot(fig1)
 
-# ========================= TOP RISK TABLE =========================
-st.subheader("Top 10 High Risk Employees")
-top_risk = df.sort_values(by="risk", ascending=False).head(10)
-st.table(top_risk)
+    fig2, ax2 = plt.subplots()
+    ax2.hist(df["risk"], bins=10)
+    ax2.set_title("Risk Score Distribution")
+    st.pyplot(fig2)
 
-# ========================= PREMIUM SECTION =========================
-if st.session_state.tier == "premium":
-    st.subheader("Premium Insights 🔥")
+    st.subheader("Top 10 High Risk Employees")
+    st.table(df.sort_values("risk", ascending=False).head(10))
 
-    avg_salary = 50000
-    df["attrition_cost"] = df["risk"] * avg_salary * 0.1
+# 5) INSIGHTS PAGE
+if page == "Insights":
+    st.subheader("💡 Insights")
+    st.write("Risk is calculated using satisfaction and engagement scores.")
 
-    st.write("Estimated Attrition Cost (Based on Risk)")
-    st.write(df[["risk", "attrition_cost"]].head())
+    if st.session_state.tier == "premium":
+        st.write("Premium Insights Enabled 🔥")
+        avg_salary = 50000
+        df["attrition_cost"] = df["risk"] * avg_salary * 0.1
+        st.write(df[["risk", "attrition_cost"]].head())
 
-    st.write("Retention Recommendations")
-    recs = []
-    for i, r in df.iterrows():
-        if r["risk_category"] == "High":
-            recs.append("Reduce overtime / Improve engagement / Increase salary")
-        elif r["risk_category"] == "Medium":
-            recs.append("Monitor closely / Offer training")
-        else:
-            recs.append("Keep monitoring")
-    df["recommendation"] = recs
-    st.write(df[["risk_category", "recommendation"]].head(10))
+# 6) SETTINGS PAGE
+if page == "Settings":
+    st.subheader("⚙️ Settings")
+    st.write("Nothing here yet. Coming soon!")
 
-# ========================= DOWNLOAD REPORT =========================
+# 7) DOWNLOAD REPORT
 st.subheader("Download Report")
 st.download_button(
-    label="Download CSV with Risk Scores",
-    data=df.to_csv(index=False).encode("utf-8"),
-    file_name="staysmart_ai_report.csv",
-    mime="text/csv"
+    "Download CSV",
+    df.to_csv(index=False).encode("utf-8"),
+    "staysmart_report.csv",
+    "text/csv"
 )
 
-# ========================= FOOTER =========================
+# 8) FOOTER
 st.markdown("""
-<div style='margin-top:50px; padding:20px; text-align:center; color:#c7d2fe;'>
-StaySmart AI • Enterprise HR Intelligence • © 2026
+<div style='text-align:center; color:#c7d2fe; margin-top:40px;'>
+StaySmart AI • © 2026
 </div>
 """, unsafe_allow_html=True)

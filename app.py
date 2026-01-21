@@ -7,6 +7,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
+import datetime
 
 # ================= PAGE CONFIG =================
 st.set_page_config(
@@ -25,7 +26,9 @@ if "authenticated" not in st.session_state:
 if "nav" not in st.session_state:
     st.session_state.nav = "Home"
 if "paid" not in st.session_state:
-    st.session_state.paid = False  # NEW: payment state
+    st.session_state.paid = False
+if "invoice" not in st.session_state:
+    st.session_state.invoice = None
 
 # ================= LICENSE KEYS =================
 LICENSE_KEYS = {
@@ -181,7 +184,7 @@ li {
   100% { transform: scale(1.02); }
 }
 
-/* NEW: Premium insight boxes */
+/* Premium insight boxes */
 .insight-box {
     border-radius:20px;
     padding:20px;
@@ -191,10 +194,11 @@ li {
 .immediate { background:#ef4444; }
 .short { background:#f59e0b; }
 .long { background:#10b981; }
+
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="bg"></div>', unsafe_allow_html=True)  # NEW
+st.markdown('<div class="bg"></div>', unsafe_allow_html=True)
 
 # =================================================
 # =============== STEP 1: PLAN SELECT ===============
@@ -330,38 +334,80 @@ if st.session_state.step == "auth":
     </div>
     """, unsafe_allow_html=True)
 
-    # ================= PAYMENT GATEWAY (REALISTIC UI) =================
-    st.markdown("## 🔒 Payment")
+    # ================= REALISTIC COMPANY SUBSCRIPTION PAYMENT =================
+    st.markdown("## 🔒 Subscription Payment (Company Billing)")
+
+    with st.expander("Company Billing Details"):
+        company_name = st.text_input("Company Name")
+        company_email = st.text_input("Company Email")
+        employees_count = st.number_input("Number of Employees", min_value=1, max_value=10000, value=50)
+        billing_cycle = st.selectbox("Billing Cycle", ["Monthly", "Yearly"])
+
+        # Calculating subscription amount
+        base_price = 100 if tier == "standard" else 150
+        total_price = base_price * employees_count
+        if billing_cycle == "Yearly":
+            total_price *= 12
+            total_price *= 0.9  # 10% discount for yearly
+
+        st.markdown(f"**Total Amount:** ₹{int(total_price)}")
+
+    # Generate invoice
+    if st.button("Generate Invoice"):
+        st.session_state.invoice = {
+            "invoice_id": f"INV-{np.random.randint(100000,999999)}",
+            "date": str(datetime.date.today()),
+            "company": company_name,
+            "email": company_email,
+            "employees": employees_count,
+            "cycle": billing_cycle,
+            "amount": int(total_price)
+        }
+        st.success("Invoice generated successfully!")
+
+    if st.session_state.invoice:
+        inv = st.session_state.invoice
+        st.markdown(f"""
+        <div style="background:#0f172a; padding:20px; border-radius:20px; color:#e5e7eb;">
+        <b>Invoice ID:</b> {inv['invoice_id']}  |  
+        <b>Date:</b> {inv['date']}  |  
+        <b>Amount:</b> ₹{inv['amount']}  
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Card payment (simulated)
     if not st.session_state.paid:
-        st.markdown("**Enter card details to proceed (Simulated Gateway)**")
+        st.markdown("### Payment Method (Simulated Gateway)")
         name = st.text_input("Name on Card")
         card = st.text_input("Card Number", max_chars=16)
         expiry = st.text_input("Expiry (MM/YY)", max_chars=5)
         cvv = st.text_input("CVV", max_chars=3, type="password")
 
         if st.button("Pay Now"):
-            if len(card) == 16 and len(expiry) == 5 and len(cvv) == 3 and name.strip() != "":
+            if len(card) == 16 and len(expiry) == 5 and len(cvv) == 3 and name.strip() != "" and st.session_state.invoice:
                 st.session_state.paid = True
-                st.success("✅ Payment successful! Proceed to license verification.")
+                st.success("✅ Payment successful! License key entry unlocked.")
             else:
-                st.error("❌ Payment failed. Check card details and try again.")
+                st.error("❌ Payment failed. Make sure invoice is generated and card details are correct.")
     else:
-        st.success("Payment already completed. You can now verify your license key.")
+        st.success("Payment completed. License key entry is now available.")
 
-    key = st.text_input(
-        "Enter License Key",
-        placeholder="SSAI-XXXX-XXXX-XXXX",
-        type="password"
-    )
+    # ================= LICENSE KEY ONLY AFTER PAYMENT =================
+    if st.session_state.paid:
+        key = st.text_input(
+            "Enter License Key",
+            placeholder="SSAI-XXXX-XXXX-XXXX",
+            type="password"
+        )
 
-    if st.button("Verify & Open Dashboard"):
-        if key.strip().upper() in [k.upper() for k in LICENSE_KEYS[tier]]:
-            st.session_state.authenticated = True
-            st.session_state.step = "dashboard"
-            st.session_state.nav = "Dashboard"
-            st.rerun()
-        else:
-            st.error("❌ Invalid license key for selected plan")
+        if st.button("Verify & Open Dashboard"):
+            if key.strip().upper() in [k.upper() for k in LICENSE_KEYS[tier]]:
+                st.session_state.authenticated = True
+                st.session_state.step = "dashboard"
+                st.session_state.nav = "Dashboard"
+                st.rerun()
+            else:
+                st.error("❌ Invalid license key for selected plan")
 
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
@@ -380,6 +426,7 @@ if st.sidebar.button("Logout / Reset"):
     st.session_state.authenticated = False
     st.session_state.nav = "Home"
     st.session_state.paid = False
+    st.session_state.invoice = None
     st.experimental_rerun()
 
 st.markdown("""
@@ -457,7 +504,7 @@ if st.session_state.tier == "premium":
     ax2.set_ylabel('')
     st.pyplot(fig2)
 
-    # ================= PREMIUM INSIGHTS =================
+    # Premium insights
     st.markdown("## 🧩 Retention Recommendations")
 
     st.markdown("""
@@ -493,7 +540,7 @@ if st.session_state.tier == "premium":
     </div>
     """, unsafe_allow_html=True)
 
-    # ================= RISK SIMULATION (PREMIUM ONLY) =================
+    # Risk simulation
     st.markdown("## 🔥 Risk Simulation (Premium)")
     sim_months = st.slider("Simulation Months", 3, 12, 6)
     sim_risk = np.linspace(df['flight_risk'].mean(), df['flight_risk'].mean() + 10, sim_months)

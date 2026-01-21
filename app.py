@@ -172,6 +172,7 @@ if st.session_state.step == "plan":
     </div>
     """, unsafe_allow_html=True)
 
+    # ================= PLAN CARDS =================
     col1, col2 = st.columns(2)
 
     with col1:
@@ -220,6 +221,15 @@ if st.session_state.step == "plan":
             st.session_state.tier = "premium"
             st.session_state.step = "auth"
             st.rerun()
+
+    # ================= PLAN COMPARISON =================
+    st.markdown("## Plan Comparison")
+    plans = {
+        "Feature": ["Flight Risk", "Risk Tags", "Dashboard", "Attrition Cost", "Retention Tips"],
+        "Standard": ["✔️", "✔️", "✔️", "❌", "❌"],
+        "Premium": ["✔️", "✔️", "✔️", "✔️", "✔️"]
+    }
+    st.table(pd.DataFrame(plans))
 
     st.stop()
 
@@ -338,7 +348,7 @@ c3.metric("Avg Risk", f"{df['flight_risk'].mean():.1f}%")
 
 # ================= RISK SUMMARY =================
 st.markdown("""
-<div style="background:#0b1220; padding:25px; border-radius:25px; color:white; margin-bottom:20px">
+<div style="background:#0b172a; padding:25px; border-radius:25px; color:white; margin-bottom:20px">
 <h2 style="margin:0">🧠 Summary Insights</h2>
 <p style="margin:0; color:#cbd5f5">
 Based on employee data, your top risk areas are:

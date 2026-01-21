@@ -1,181 +1,191 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
 
-# ================= PAGE CONFIG =================
+# ---------------- CONFIG ----------------
 st.set_page_config(
     page_title="StaySmart AI",
     layout="wide",
-    page_icon="🧠"
+    initial_sidebar_state="collapsed"
 )
 
-# ================= SESSION STATE =================
-defaults = {
-    "page": "Home",
-    "step": "plan",        # plan → payment → auth → dashboard
-    "tier": None,
-    "authenticated": False
-}
-for k, v in defaults.items():
-    if k not in st.session_state:
-        st.session_state[k] = v
+# ---------------- SESSION STATE ----------------
+if "page" not in st.session_state:
+    st.session_state.page = "home"
 
-# ================= SIDEBAR =================
-with st.sidebar:
-    st.markdown("## 🧠 StaySmart AI")
-    st.session_state.page = st.radio(
-        "Navigate",
-        ["Home", "Dashboard", "About Us"],
-        index=["Home", "Dashboard", "About Us"].index(st.session_state.page)
-    )
-    st.markdown("---")
-    st.caption("© EXQ-16")
+if "plan" not in st.session_state:
+    st.session_state.plan = None
 
-# ================= GLOBAL STYLES =================
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+
+# ---------------- NAVIGATION ----------------
+def go(page):
+    st.session_state.page = page
+    st.experimental_rerun()
+
+
 st.markdown("""
 <style>
-.hero {
-    min-height:90vh;
-    background:linear-gradient(135deg,#4f46e5,#7c3aed);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    border-radius:30px;
-    padding:60px;
-}
-.hero h1 { font-size:64px; color:white; font-weight:900; }
-.hero p { font-size:22px; color:#e0e7ff; }
-
-.glass {
-    background:rgba(255,255,255,0.08);
-    backdrop-filter: blur(18px);
-    border-radius:28px;
-    padding:40px;
-    box-shadow:0 30px 80px rgba(0,0,0,0.35);
-}
-
-.footer {
-    text-align:center;
-    padding:40px;
-    color:#94a3b8;
+.big-title { font-size: 42px; font-weight: 800; }
+.sub { font-size: 18px; color: #aaa; }
+.card {
+    padding: 25px;
+    border-radius: 16px;
+    background: #111;
+    border: 1px solid #222;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# =================================================
-# ================= HOME PAGE =====================
-# =================================================
-if st.session_state.page == "Home":
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    if st.button("🏠 Home"):
+        go("home")
+with col2:
+    if st.button("📊 Dashboard"):
+        go("dashboard")
+with col3:
+    if st.button("💼 Plans"):
+        go("plans")
+with col4:
+    if st.button("ℹ️ About"):
+        go("about")
 
-    st.markdown("""
-    <div class="hero">
-        <div>
-            <h1>StaySmart AI</h1>
-            <p>Enterprise HR Intelligence Platform</p>
-            <p>Predict Attrition • Retain Talent • Reduce Cost</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
 
+# ---------------- HOME ----------------
+if st.session_state.page == "home":
+    st.markdown('<div class="big-title">StaySmart AI</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub">Predict. Retain. Optimize your workforce.</div>', unsafe_allow_html=True)
+    st.write("")
+    st.success("AI-powered employee attrition intelligence")
+
+
+# ---------------- PLANS ----------------
+elif st.session_state.page == "plans":
     st.markdown("## Choose Your Plan")
 
-    col1, col2 = st.columns(2)
+    c1, c2 = st.columns(2)
 
-    with col1:
+    with c1:
+        st.markdown("### Standard")
         st.markdown("""
-        <div class="glass">
-            <h3>Standard</h3>
-            <p>₹100 / employee / month</p>
-            <ul>
-                <li>Flight risk prediction</li>
-                <li>Risk categorization</li>
-                <li>Visual dashboards</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if st.button("Select Standard", key="std"):
-            st.session_state.tier = "standard"
-            st.session_state.step = "payment"
-            st.session_state.page = "Dashboard"
-            st.rerun()
-
-    with col2:
-        st.markdown("""
-        <div class="glass">
-            <h3>Premium</h3>
-            <p>₹150 / employee / month</p>
-            <ul>
-                <li>Everything in Standard</li>
-                <li>Risk simulator</li>
-                <li>Immediate / Short / Long-term retention</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if st.button("Select Premium", key="prm"):
-            st.session_state.tier = "premium"
-            st.session_state.step = "payment"
-            st.session_state.page = "Dashboard"
-            st.rerun()
-
-    st.markdown("""
-    <div class="footer">
-        © 2026 EXQ-16. All rights reserved.
-    </div>
-    """, unsafe_allow_html=True)
-
-# =================================================
-# ================= ABOUT PAGE ====================
-# =================================================
-elif st.session_state.page == "About Us":
-    st.markdown("""
-    <div class="glass">
-        <h2>About EXQ-16</h2>
-        <p>
-        EXQ-16 is an innovation-driven team building enterprise-grade AI
-        solutions for decision intelligence.
-        </p>
-        <p>
-        StaySmart AI helps organizations proactively identify attrition risks
-        and design effective retention strategies.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-# =================================================
-# ================= DASHBOARD =====================
-# =================================================
-elif st.session_state.page == "Dashboard":
-
-    # If no plan chosen → redirect
-    if st.session_state.tier is None:
-        st.warning("Please select a plan to continue.")
-        st.session_state.page = "Home"
-        st.rerun()
-
-    # -------- PAYMENT --------
-    if st.session_state.step == "payment":
-        st.success("Payment Successful (Demo)")
-        if st.button("Continue to Access Code"):
-            st.session_state.step = "auth"
-            st.rerun()
-
-    # -------- AUTH --------
-    elif st.session_state.step == "auth":
-        key = st.text_input("Enter Access Key", type="password")
-        if st.button("Verify"):
+        - Attrition Risk Score  
+        - Basic Insights  
+        - CSV Upload  
+        """)
+        if st.button("Select Standard"):
+            st.session_state.plan = "standard"
             st.session_state.authenticated = True
-            st.session_state.step = "dashboard"
-            st.rerun()
+            go("dashboard")
 
-    # -------- FINAL DASHBOARD --------
-    elif st.session_state.step == "dashboard" and st.session_state.authenticated:
-        st.markdown("## StaySmart AI Dashboard")
-        st.info("Upload employee CSV to begin analysis")
+    with c2:
+        st.markdown("### Premium 🚀")
+        st.markdown("""
+        - Everything in Standard  
+        - Advanced Retention Strategy  
+        - Risk Simulator  
+        - Timeline-based Actions  
+        """)
+        if st.button("Select Premium"):
+            st.session_state.plan = "premium"
+            st.session_state.authenticated = True
+            go("dashboard")
 
-        # ⬇️ YOUR EXISTING ML / CSV / MODEL LOGIC CONTINUES HERE ⬇️
+
+# ---------------- DASHBOARD ----------------
+elif st.session_state.page == "dashboard":
+
+    if not st.session_state.authenticated:
+        st.warning("Please select a plan first.")
+        go("plans")
+
+    st.markdown("## StaySmart AI Dashboard")
+    st.caption(f"Active Plan: **{st.session_state.plan.upper()}**")
+
+    file = st.file_uploader("Upload Employee CSV", type=["csv"])
+
+    if file:
+        df = pd.read_csv(file)
+
+        if "Attrition" not in df.columns:
+            st.error("CSV must contain an 'Attrition' column")
+            st.stop()
+
+        # ----- Risk Score (Mock AI Logic) -----
+        np.random.seed(42)
+        df["Risk Score"] = np.random.randint(20, 95, size=len(df))
+
+        high_risk = df[df["Risk Score"] > 70]
+
+        st.metric("Employees Analyzed", len(df))
+        st.metric("High Risk Employees", len(high_risk))
+
+        st.subheader("Risk Distribution")
+        st.bar_chart(df["Risk Score"])
+
+        # -------- STANDARD INSIGHTS --------
+        if st.session_state.plan == "standard":
+            st.subheader("Standard Insights")
+            st.info("""
+            - Employees with risk >70 should be monitored  
+            - Focus on engagement and feedback  
+            - Review workload and team satisfaction  
+            """)
+
+        # -------- PREMIUM INSIGHTS --------
+        if st.session_state.plan == "premium":
+            st.subheader("Premium Retention Strategy")
+
+            st.markdown("### 🔴 Immediate (0–30 days)")
+            st.success("""
+            - Manager 1:1 meetings  
+            - Compensation review  
+            - Burnout assessment  
+            """)
+
+            st.markdown("### 🟠 Short Term (1–3 months)")
+            st.success("""
+            - Skill upskilling programs  
+            - Internal mobility options  
+            - Recognition incentives  
+            """)
+
+            st.markdown("### 🟢 Long Term (3–12 months)")
+            st.success("""
+            - Leadership track planning  
+            - Retention bonuses  
+            - Career roadmap alignment  
+            """)
+
+            st.markdown("### ⚠️ Risk Simulator")
+            attrition_rate = st.slider("Projected Attrition %", 5, 40, 15)
+            impact = attrition_rate * 1.4
+
+            st.warning(f"Estimated business impact score: **{impact:.2f}**")
+
+        st.download_button(
+            "Download Report",
+            df.to_csv(index=False),
+            "staysmart_report.csv"
+        )
+
+    else:
+        st.info("Upload a CSV to begin analysis.")
+
+
+# ---------------- ABOUT ----------------
+elif st.session_state.page == "about":
+    st.markdown("## About StaySmart AI")
+    st.markdown("""
+    **StaySmart AI** helps organizations proactively reduce employee attrition using:
+    
+    - Predictive analytics  
+    - Behavioral risk modeling  
+    - Actionable retention strategies  
+
+    Built for HR leaders who want **clarity, not complexity**.
+    """)
+
+    st.caption("© 2026 StaySmart AI — All rights reserved")

@@ -40,6 +40,12 @@ body { background:#0b1220; }
   100% { box-shadow: 0 0 20px rgba(79,70,229,0.5); }
 }
 
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 .hero {
     text-align:center;
     padding:70px 20px 30px;
@@ -58,6 +64,12 @@ body { background:#0b1220; }
 .hero p {
     font-size:20px;
     color:#c7d2fe;
+    animation: fadeIn 2s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .plan-card {
@@ -66,6 +78,33 @@ body { background:#0b1220; }
     border-radius:28px;
     box-shadow:0 30px 70px rgba(0,0,0,0.35);
     height:100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 2px solid transparent;
+    background-origin: border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+.plan-card:hover {
+    transform: translateY(-6px);
+    box-shadow:0 40px 90px rgba(0,0,0,0.45);
+    border-image: linear-gradient(90deg, #4f46e5, #7c3aed) 1;
+}
+
+.plan-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(79,70,229,0.35), rgba(124,58,237,0.35), rgba(79,70,229,0.35));
+    background-size: 200% 200%;
+    animation: gradient 4s ease infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 28px;
+}
+
+.plan-card:hover::after {
+    opacity: 1;
 }
 
 .plan-title {
@@ -114,6 +153,7 @@ li {
     padding:28px;
     border-radius:20px;
     margin-top:30px;
+    animation: fadeIn 1.5s ease;
 }
 
 .req-box h4 {
@@ -175,7 +215,7 @@ if nav == "Home":
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("## 🔥 Choose Your Plan")
+        st.markdown("## Choose Your Plan")
 
         col1, col2 = st.columns(2)
 
@@ -369,9 +409,9 @@ if nav == "Dashboard":
     med = int((df['risk_category']=="Medium").sum())
     low = int((df['risk_category']=="Low").sum())
 
-    st.write(f"🔥 **High Risk:** {high} employees")
-    st.write(f"⚠️ **Medium Risk:** {med} employees")
-    st.write(f"✅ **Low Risk:** {low} employees")
+    st.write(f"High Risk: **{high}** employees")
+    st.write(f"Medium Risk: **{med}** employees")
+    st.write(f"Low Risk: **{low}** employees")
 
     # ================= CHART =================
     st.markdown("## 📊 Risk Distribution")

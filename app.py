@@ -22,6 +22,8 @@ if "tier" not in st.session_state:
     st.session_state.tier = None
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
+if "nav" not in st.session_state:
+    st.session_state.nav = "Home"
 
 # ================= LICENSE KEYS =================
 LICENSE_KEYS = {
@@ -203,10 +205,21 @@ li {
 # ================= SIDEBAR NAV =================
 st.sidebar.title("StaySmart AI")
 st.sidebar.write("Enterprise HR Intelligence")
-nav = st.sidebar.radio("Navigate", ["Home", "Dashboard", "About"])
+
+# Keep nav synced with session state
+nav = st.sidebar.radio(
+    "Navigate",
+    ["Home", "Dashboard", "About"],
+    index=["Home", "Dashboard", "About"].index(st.session_state.nav)
+)
+st.session_state.nav = nav
+
+# Auto-switch to Dashboard after login
+if st.session_state.step == "dashboard":
+    st.session_state.nav = "Dashboard"
 
 # ================= HOME =================
-if nav == "Home":
+if st.session_state.nav == "Home":
     if st.session_state.step == "plan":
         st.markdown("""
         <div class="hero">
@@ -321,6 +334,7 @@ if nav == "Home":
             if key in LICENSE_KEYS[tier]:
                 st.session_state.authenticated = True
                 st.session_state.step = "dashboard"
+                st.session_state.nav = "Dashboard"
                 st.rerun()
             else:
                 st.error("❌ Invalid license key for selected plan")
@@ -328,7 +342,7 @@ if nav == "Home":
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ================= DASHBOARD =================
-if nav == "Dashboard":
+if st.session_state.nav == "Dashboard":
     if not st.session_state.authenticated:
         st.warning("Please select a plan and verify license first.")
         st.stop()
@@ -455,7 +469,7 @@ if nav == "Dashboard":
     )
 
 # ================= ABOUT =================
-if nav == "About":
+if st.session_state.nav == "About":
     st.markdown("""
     <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);
     padding:40px;border-radius:30px;margin-bottom:30px">

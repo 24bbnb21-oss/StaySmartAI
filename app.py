@@ -45,13 +45,11 @@ body { background:#0b1220; }
     font-size:52px;
     font-weight:800;
     color:white;
-    animation: fadeIn 1s ease-in-out;
 }
 
 .hero p {
     font-size:20px;
     color:#c7d2fe;
-    animation: fadeIn 2s ease-in-out;
 }
 
 .plan-card {
@@ -60,12 +58,6 @@ body { background:#0b1220; }
     border-radius:28px;
     box-shadow:0 30px 70px rgba(0,0,0,0.35);
     height:100%;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.plan-card:hover {
-    transform: translateY(-10px);
-    box-shadow:0 40px 90px rgba(0,0,0,0.45);
 }
 
 .plan-title {
@@ -114,7 +106,6 @@ li {
     padding:28px;
     border-radius:20px;
     margin-top:30px;
-    animation: fadeIn 1.5s ease-in-out;
 }
 
 .req-box h4 {
@@ -124,41 +115,8 @@ li {
 .req-box li {
     color:#cbd5f5;
 }
-
-.footer {
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    background-color: #0b1220;
-    color: #c7d2fe;
-    text-align: center;
-    padding: 12px;
-    font-size: 14px;
-    opacity: 0.8;
-}
-
-@keyframes fadeIn {
-    0% { opacity: 0; transform: translateY(20px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
 </style>
 """, unsafe_allow_html=True)
-
-# ================= SIDEBAR NAV =================
-st.sidebar.title("StaySmart AI")
-st.sidebar.write("Enterprise HR Intelligence")
-
-nav = st.sidebar.radio(
-    "Navigate",
-    ["Home", "Dashboard", "About"],
-    index=["Home", "Dashboard", "About"].index(st.session_state.nav)
-)
-st.session_state.nav = nav
-
-# 👉 Auto-switch to Dashboard after login
-if st.session_state.step == "dashboard":
-    st.session_state.nav = "Dashboard"
 
 # =================================================
 # =============== STEP 1: PLAN SELECT ===============
@@ -172,7 +130,6 @@ if st.session_state.step == "plan":
     </div>
     """, unsafe_allow_html=True)
 
-    # ================= PLAN CARDS =================
     col1, col2 = st.columns(2)
 
     with col1:
@@ -221,15 +178,6 @@ if st.session_state.step == "plan":
             st.session_state.tier = "premium"
             st.session_state.step = "auth"
             st.rerun()
-
-    # ================= PLAN COMPARISON =================
-    st.markdown("## Plan Comparison")
-    plans = {
-        "Feature": ["Flight Risk", "Risk Tags", "Dashboard", "Attrition Cost", "Retention Tips"],
-        "Standard": ["✔️", "✔️", "✔️", "❌", "❌"],
-        "Premium": ["✔️", "✔️", "✔️", "✔️", "✔️"]
-    }
-    st.table(pd.DataFrame(plans))
 
     st.stop()
 
@@ -340,29 +288,15 @@ model.fit(X_scaled, df['left'])
 df['flight_risk'] = (model.predict_proba(X_scaled)[:,1]*100).round(0)
 df['risk_category'] = pd.cut(df['flight_risk'], [0,49,69,100], labels=["Low","Medium","High"])
 
+# ================= PLAN FEATURE LIMIT =================
+if st.session_state.tier == "standard":
+    st.warning("You are using STANDARD plan. Upgrade to Premium for Attrition Cost & Retention Tips.")
+
 # ================= METRICS =================
 c1,c2,c3 = st.columns(3)
 c1.metric("Employees", len(df))
 c2.metric("High Risk", int((df['risk_category']=="High").sum()))
 c3.metric("Avg Risk", f"{df['flight_risk'].mean():.1f}%")
-
-# ================= RISK SUMMARY =================
-st.markdown("""
-<div style="background:#0b172a; padding:25px; border-radius:25px; color:white; margin-bottom:20px">
-<h2 style="margin:0">🧠 Summary Insights</h2>
-<p style="margin:0; color:#cbd5f5">
-Based on employee data, your top risk areas are:
-</p>
-</div>
-""", unsafe_allow_html=True)
-
-high = int((df['risk_category']=="High").sum())
-med = int((df['risk_category']=="Medium").sum())
-low = int((df['risk_category']=="Low").sum())
-
-st.write(f"High Risk: **{high}** employees")
-st.write(f"Medium Risk: **{med}** employees")
-st.write(f"Low Risk: **{low}** employees")
 
 # ================= CHART =================
 st.markdown("## 📊 Risk Distribution")
@@ -370,46 +304,29 @@ fig, ax = plt.subplots()
 df['risk_category'].value_counts().plot(kind="bar", ax=ax)
 st.pyplot(fig)
 
-# ================= PIE CHART =================
-st.markdown("## 📈 Risk Breakdown")
-fig2, ax2 = plt.subplots()
-df['risk_category'].value_counts().plot(kind='pie', autopct='%1.1f%%', ax=ax2)
-ax2.set_ylabel('')
-st.pyplot(fig2)
+# Premium-only charts & insights
+if st.session_state.tier == "premium":
+    st.markdown("## 📈 Risk Breakdown")
+    fig2, ax2 = plt.subplots()
+    df['risk_category'].value_counts().plot(kind='pie', autopct='%1.1f%%', ax=ax2)
+    ax2.set_ylabel('')
+    st.pyplot(fig2)
 
-# ================= DATA TABLE =================
-st.markdown("## 🧾 Employee Risk Table")
-st.dataframe(df.head(10))
+    st.markdown("## 🧩 Retention Recommendations")
+    st.write("Top retention actions based on risk score:")
+    st.write("- High Risk: Offer retention bonus or role change")
+    st.write("- Medium Risk: Increase engagement & recognition")
+    st.write("- Low Risk: Keep motivation high")
 
-# ================= SIMULATOR =================
-st.markdown("## 🎛️ Risk Simulator")
-
-satisfaction = st.slider("Satisfaction Score", 1, 10, 5)
-engagement = st.slider("Engagement Score", 1, 10, 5)
-hike = st.slider("Months since last hike", 0, 36, 12)
-ot = st.slider("Overtime hours", 0, 80, 20)
-dist = st.slider("Distance from home", 1, 40, 10)
-
-sim_score = (
-    (10-satisfaction)*0.3 +
-    (10-engagement)*0.3 +
-    (hike/36)*10*0.2 +
-    (ot/80)*10*0.1 +
-    (dist/40)*10*0.1
-)
-
-st.write(f"Estimated Flight Risk Score: **{sim_score:.2f}**")
-
-# ================= DOWNLOAD =================
 st.download_button(
     "⬇️ Download Full Report",
     df.to_csv(index=False),
     "staysmart_ai_report.csv"
 )
 
-# ================= FOOTER =================
+# ================= COPYRIGHT FOOTER =================
 st.markdown("""
-<div class="footer">
-    © 2026 EXQ-16. All rights reserved. • StaySmart AI
+<div style="text-align:center; margin-top:40px; color:#94a3b8; font-size:14px;">
+© 2026 EXQ-16. All Rights Reserved.
 </div>
 """, unsafe_allow_html=True)

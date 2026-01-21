@@ -24,6 +24,8 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 if "nav" not in st.session_state:
     st.session_state.nav = "Home"
+if "paid" not in st.session_state:
+    st.session_state.paid = False
 
 # ================= LICENSE KEYS =================
 LICENSE_KEYS = {
@@ -38,6 +40,7 @@ body {
     background: radial-gradient(circle at top left, #1f2a63, #0b1220 60%, #060a12 100%);
     color:#e5e7eb;
     font-family: "Segoe UI", sans-serif;
+    transition: background 0.5s ease;
 }
 
 .fade {
@@ -276,6 +279,38 @@ li {
     color:#fff;
 }
 
+.payment-box {
+    background: rgba(15,23,42,0.85);
+    padding:25px;
+    border-radius:25px;
+    border: 1px solid rgba(255,255,255,0.12);
+    margin-top:20px;
+}
+
+.payment-box h3 {
+    margin-top:0;
+    color:#fff;
+}
+
+.payment-box input {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    color:#e5e7eb;
+    padding:10px;
+    border-radius:10px;
+    width:100%;
+}
+
+.payment-box button {
+    background: linear-gradient(135deg,#4f46e5,#7c3aed);
+    color:#fff;
+    padding:12px 20px;
+    border:none;
+    border-radius:12px;
+    font-weight:800;
+    cursor:pointer;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -295,6 +330,34 @@ if st.session_state.step == "plan":
     <div class="hero fade">
         <h1>StaySmart AI</h1>
         <p>Predict Attrition • Reduce Risk • Retain Talent</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ======= NEW FRONT PAGE CONTENT =======
+    st.markdown("""
+    <div class="req-box fade" style="max-width:1000px;margin:auto;">
+        <h4>✨ What StaySmart AI Does</h4>
+        <p style="color:#cbd5f5">
+        StaySmart AI analyzes employee data and predicts attrition risk in real-time.
+        It helps HR teams proactively retain talent, reduce turnover cost, and improve employee engagement.
+        </p>
+        <div class="actions">
+            <div class="action-box">
+                <h4>📌 Predict</h4>
+                <p>Detect flight risk before it happens using AI-based scoring.</p>
+                <span class="tag tag-high">High Accuracy</span>
+            </div>
+            <div class="action-box">
+                <h4>🧠 Analyze</h4>
+                <p>Understand why employees leave with clear insights.</p>
+                <span class="tag tag-med">Smart Insights</span>
+            </div>
+            <div class="action-box">
+                <h4>🛡️ Retain</h4>
+                <p>Take targeted actions to keep top performers.</p>
+                <span class="tag tag-low">Retention</span>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -396,12 +459,12 @@ if st.session_state.step == "auth":
     tier = st.session_state.tier
     price = "₹100 / employee / month" if tier == "standard" else "₹150 / employee / month"
 
-    st.markdown(f"""
+    st.markdown("""
     <div class="logo">
         <img src="https://img.icons8.com/fluency/48/000000/brain.png" />
         <h2>StaySmart AI</h2>
     </div>
-    """ , unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
     st.markdown(f"""
     <div class="plan-card fade" style="max-width:620px;margin:auto;">
@@ -427,20 +490,56 @@ if st.session_state.step == "auth":
     </div>
     """, unsafe_allow_html=True)
 
-    key = st.text_input(
-        "Enter License Key",
-        placeholder="SSAI-XXXX-XXXX-XXXX",
-        type="password"
-    )
+    # ================= PAYMENT SIMULATION =================
+    st.markdown("""
+    <div class="payment-box fade">
+        <h3>🏢 Company Subscription Payment</h3>
+        <p style="color:#cbd5f5">
+        Enter company billing details to proceed. (Simulation only)
+        </p>
+        <input placeholder="Company Name" id="company_name"/>
+        <input placeholder="Company Email" id="company_email" style="margin-top:10px;"/>
+        <input placeholder="GSTIN (Optional)" id="company_gstin" style="margin-top:10px;"/>
+        <input placeholder="Subscription Duration (months)" id="duration" style="margin-top:10px;"/>
+        <div style="margin-top:15px;">
+            <button onclick="document.getElementById('payment_status').innerText='Processing...'; setTimeout(()=>{document.getElementById('payment_status').innerText='Payment Successful ✓';}, 900)">
+                Pay Now
+            </button>
+        </div>
+        <p id="payment_status" style="margin-top:10px;color:#a7f3d0;font-weight:700;"></p>
+    </div>
+    """, unsafe_allow_html=True)
 
-    if st.button("Verify & Open Dashboard"):
-        if key.strip().upper() in [k.upper() for k in LICENSE_KEYS[tier]]:
-            st.session_state.authenticated = True
-            st.session_state.step = "dashboard"
-            st.session_state.nav = "Dashboard"
-            st.rerun()
-        else:
-            st.error("❌ Invalid license key for selected plan")
+    st.markdown("""
+    <script>
+    const btn = document.querySelector("button");
+    btn.addEventListener("click", () => {
+        setTimeout(() => {
+            window.dispatchEvent(new Event('payment_done'));
+        }, 1000);
+    });
+    </script>
+    """, unsafe_allow_html=True)
+
+    # This ensures license key appears only after payment is done
+    if st.button("I have completed payment"):
+        st.session_state.paid = True
+
+    if st.session_state.paid:
+        key = st.text_input(
+            "Enter License Key",
+            placeholder="SSAI-XXXX-XXXX-XXXX",
+            type="password"
+        )
+
+        if st.button("Verify & Open Dashboard"):
+            if key.strip().upper() in [k.upper() for k in LICENSE_KEYS[tier]]:
+                st.session_state.authenticated = True
+                st.session_state.step = "dashboard"
+                st.session_state.nav = "Dashboard"
+                st.rerun()
+            else:
+                st.error("❌ Invalid license key for selected plan")
 
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()

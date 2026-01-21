@@ -36,9 +36,7 @@ with st.sidebar:
 # ================= GLOBAL STYLES =================
 st.markdown("""
 <style>
-html {
-    scroll-behavior: smooth;
-}
+html { scroll-behavior:smooth; }
 
 .hero {
     min-height:90vh;
@@ -105,11 +103,7 @@ if st.session_state.page == "Home":
 
     st.markdown("<br><br>", unsafe_allow_html=True)
 
-    # -------- Plan Section --------
-    st.markdown("""
-    <div id="plans"></div>
-    <h2 style="text-align:center;">Choose Your Plan</h2>
-    """, unsafe_allow_html=True)
+    st.markdown("## Choose Your Plan")
 
     col1, col2 = st.columns(2)
 
@@ -168,12 +162,16 @@ if st.session_state.page == "About Us":
     <div class="glass">
         <h2>About EXQ-16</h2>
         <p>
-        EXQ-16 is a next-generation analytics team focused on building
-        intelligent, scalable and ethical AI solutions for enterprises.
+        EXQ-16 is an innovation-driven analytics team focused on building
+        enterprise-grade AI systems.
         </p>
         <p>
-        StaySmart AI was developed as an enterprise-grade HR intelligence
-        platform for proactive retention and workforce planning.
+        StaySmart AI was designed to help organizations proactively reduce
+        attrition, understand workforce risks, and build long-term retention
+        strategies using data-driven intelligence.
+        </p>
+        <p>
+        Built for performance. Designed for leadership.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -182,6 +180,37 @@ if st.session_state.page == "About Us":
 # =================================================
 # ================= DASHBOARD =====================
 # =================================================
-# ⚠️ FROM HERE — YOUR EXISTING PAYMENT → AUTH → DASHBOARD LOGIC
-# ⚠️ NOTHING BELOW THIS POINT SHOULD BE CHANGED
-# ⚠️ PASTE YOUR WORKING FINAL LOGIC HERE EXACTLY
+if st.session_state.page == "Dashboard":
+
+    # If user clicks Dashboard without selecting plan
+    if st.session_state.tier is None:
+        st.info("Please select a plan to continue.")
+        st.session_state.page = "Home"
+        st.rerun()
+
+    # ---------------- PAYMENT STEP ----------------
+    if st.session_state.step == "payment":
+        st.success("Payment Successful (Demo)")
+        if st.button("Continue"):
+            st.session_state.step = "auth"
+            st.rerun()
+        st.stop()
+
+    # ---------------- AUTH STEP ----------------
+    if st.session_state.step == "auth":
+        key = st.text_input("Enter Access Key", type="password")
+        if st.button("Verify"):
+            st.session_state.authenticated = True
+            st.session_state.step = "dashboard"
+            st.rerun()
+        st.stop()
+
+    # ---------------- FINAL DASHBOARD ----------------
+    if not st.session_state.authenticated:
+        st.stop()
+
+    st.markdown("## StaySmart AI Dashboard")
+    st.markdown("Upload employee CSV to begin analysis")
+
+    # ---------- YOUR EXISTING DASHBOARD LOGIC CONTINUES BELOW ----------
+    # (CSV upload, ML model, charts, premium insights etc.)

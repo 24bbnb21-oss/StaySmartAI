@@ -6,7 +6,6 @@ import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split, cross_val_score
 import matplotlib.pyplot as plt
 
 # ================= PAGE CONFIG =================
@@ -318,6 +317,34 @@ li {
     color:#94a3b8;
     font-size:14px;
 }
+
+.corner-decor {
+    position: relative;
+}
+.corner-decor:before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    width: 60px;
+    height: 60px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-right: none;
+    border-bottom: none;
+    border-radius: 0 0 20px 0;
+}
+.corner-decor:after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    width: 60px;
+    height: 60px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-left: none;
+    border-top: none;
+    border-radius: 20px 0 0 0;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -340,18 +367,17 @@ if st.session_state.step == "plan":
     </div>
     """, unsafe_allow_html=True)
 
-    # ======= NEW PROFESSIONAL FRONT PAGE CONTENT =======
     st.markdown("""
     <div class="req-box fade" style="max-width:1000px;margin:auto;">
         <h4>What StaySmart AI Provides</h4>
-        <p style="color:#cbd5f5">
-        StaySmart AI uses employee data to predict attrition risk and provide actionable insights to HR teams.
-        This helps reduce turnover cost, improve employee engagement, and retain top performers.
+        <p style="color:#cbd5f5; line-height:1.7;">
+            StaySmart AI helps HR teams predict which employees may leave, why they might leave, and what actions to take to retain them.
+            It uses employee data to calculate risk scores, provide insights, and recommend retention strategies that are actionable and measurable.
         </p>
-        <div class="actions">
+        <div class="actions" style="margin-top:20px;">
             <div class="action-box">
                 <h4>1) Data Ingestion</h4>
-                <p>Upload employee CSV or integrate HRMS data</p>
+                <p>Upload employee CSV or connect HRMS</p>
             </div>
             <div class="action-box">
                 <h4>2) AI Risk Scoring</h4>
@@ -359,42 +385,44 @@ if st.session_state.step == "plan":
             </div>
             <div class="action-box">
                 <h4>3) Retention Actions</h4>
-                <p>Get recommendations to retain high performers</p>
+                <p>Get practical steps to retain talent</p>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # ======= NEW SECTION IN PLACE OF SAMPLE GRAPH =======
+    st.markdown("<br>", unsafe_allow_html=True)
+
     st.markdown("""
     <div class="compare fade" style="margin-top:30px;">
         <h3>Why StaySmart AI?</h3>
-        <p style="color:#cbd5f5; font-size:16px;">
-            StaySmart AI provides HR teams with data-driven attrition prediction, helping you retain your best talent.
-            Get instant insights, clear risk indicators, and actionable retention recommendations.
+        <p style="color:#cbd5f5; font-size:16px; line-height:1.7;">
+            StaySmart AI is built for modern HR teams who want data-backed decisions instead of guesswork.
+            The system highlights high-risk employees, shows the key reasons behind attrition, and suggests retention actions that can be implemented immediately.
         </p>
-        <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap; margin-top:15px;">
-            <div style="background:rgba(255,255,255,0.08); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.12); width:220px;">
+        <div style="display:flex; gap:25px; justify-content:center; flex-wrap:wrap; margin-top:20px;">
+            <div style="background:rgba(255,255,255,0.08); padding:18px; border-radius:20px; border:1px solid rgba(255,255,255,0.12); width:240px;">
                 <h4 style="color:#fff; margin:0;">📌 Risk Prediction</h4>
-                <p style="color:#cbd5f5; margin:8px 0 0 0;">Predict flight risk in real-time.</p>
+                <p style="color:#cbd5f5; margin:8px 0 0 0;">Predict flight risk with high accuracy.</p>
             </div>
-            <div style="background:rgba(255,255,255,0.08); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.12); width:220px;">
-                <h4 style="color:#fff; margin:0;">🧠 AI Insights</h4>
-                <p style="color:#cbd5f5; margin:8px 0 0 0;">Understand WHY employees leave.</p>
+            <div style="background:rgba(255,255,255,0.08); padding:18px; border-radius:20px; border:1px solid rgba(255,255,255,0.12); width:240px;">
+                <h4 style="color:#fff; margin:0;">🧠 Deep Insights</h4>
+                <p style="color:#cbd5f5; margin:8px 0 0 0;">Understand why employees leave.</p>
             </div>
-            <div style="background:rgba(255,255,255,0.08); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.12); width:220px;">
-                <h4 style="color:#fff; margin:0;">🛡️ Retention Tips</h4>
-                <p style="color:#cbd5f5; margin:8px 0 0 0;">Actionable steps to retain talent.</p>
+            <div style="background:rgba(255,255,255,0.08); padding:18px; border-radius:20px; border:1px solid rgba(255,255,255,0.12); width:240px;">
+                <h4 style="color:#fff; margin:0;">🛡️ Retention Actions</h4>
+                <p style="color:#cbd5f5; margin:8px 0 0 0;">Get immediate steps to retain talent.</p>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # ================= TRUST LOGOS =================
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
     st.markdown("""
     <div class="compare fade">
         <h3>Trusted By</h3>
-        <div style="display:flex; gap:25px; justify-content:center; flex-wrap:wrap;">
+        <div style="display:flex; gap:35px; justify-content:center; flex-wrap:wrap; margin-top:15px;">
             <div style="text-align:center; padding:15px;">
                 <img src="https://img.icons8.com/fluency/48/000000/briefcase.png" />
                 <p>Enterprise</p>
@@ -411,7 +439,6 @@ if st.session_state.step == "plan":
     </div>
     """, unsafe_allow_html=True)
 
-    # ======= ADD SPACE BEFORE PLANS =======
     st.markdown("<br><br>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
@@ -463,7 +490,8 @@ if st.session_state.step == "plan":
             st.session_state.step = "auth"
             st.rerun()
 
-    # ================= COMPARISON TABLE =================
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
     st.markdown("""
     <div class="compare fade">
         <h3>Plan Comparison</h3>
@@ -636,7 +664,6 @@ for col,(lo,hi) in required_cols.items():
     if col not in df.columns:
         df[col] = np.clip(np.random.normal((lo+hi)/2,2,len(df)), lo, hi)
 
-# MODEL TARGET (risk-based)
 risk_score = (
     (10-df['satisfaction_score'])*0.3 +
     (10-df['engagement_score'])*0.3 +
@@ -648,20 +675,11 @@ risk_score = (
 df['left'] = (risk_score > 5.5).astype(int)
 
 X = df[list(required_cols.keys())]
-y = df['left']
-
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# TRAIN TEST SPLIT FOR BETTER ACCURACY
-X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
-
-model = RandomForestClassifier(n_estimators=200, max_depth=8, random_state=42)
-model.fit(X_train, y_train)
-
-# Accuracy
-acc = model.score(X_test, y_test)
-cv_acc = cross_val_score(model, X_scaled, y, cv=5).mean()
+model = RandomForestClassifier(n_estimators=100, max_depth=6, random_state=42)
+model.fit(X_scaled, df['left'])
 
 df['flight_risk'] = (model.predict_proba(X_scaled)[:,1]*100).round(0)
 df['risk_category'] = pd.cut(df['flight_risk'], [0,49,69,100], labels=["Low","Medium","High"])
@@ -676,28 +694,16 @@ c1.metric("Employees", len(df))
 c2.metric("High Risk", int((df['risk_category']=="High").sum()))
 c3.metric("Avg Risk", f"{df['flight_risk'].mean():.1f}%")
 
-# Accuracy Metrics
-st.markdown(f"**Model Accuracy:** {acc*100:.2f}%  |  **Cross-Validation:** {cv_acc*100:.2f}%")
-
 # ================= CHART =================
 st.markdown("## 📊 Risk Distribution")
-fig, ax = plt.subplots(figsize=(8,3))
-df['risk_category'].value_counts().plot(kind="bar", ax=ax)
-ax.set_title("Risk Category Distribution")
-ax.set_xlabel("Risk Category")
-ax.set_ylabel("Number of Employees")
-ax.grid(axis='y', linestyle='--', alpha=0.5)
-st.pyplot(fig)
 
-# ================= NEW GRAPH: Risk by Overtime =================
-st.markdown("## 📈 Risk vs Overtime Hours")
-fig2, ax2 = plt.subplots(figsize=(8,3))
-ax2.scatter(df['overtime_hours'], df['flight_risk'])
-ax2.set_title("Overtime vs Flight Risk")
-ax2.set_xlabel("Overtime Hours")
-ax2.set_ylabel("Flight Risk (%)")
-ax2.grid(True, linestyle='--', alpha=0.5)
-st.pyplot(fig2)
+fig, ax = plt.subplots(figsize=(8,3))
+bars = df['risk_category'].value_counts().sort_index().plot(kind="bar", ax=ax)
+ax.set_title("Risk Distribution")
+ax.set_xlabel("")
+ax.set_ylabel("Count")
+ax.grid(axis='y', alpha=0.25)
+st.pyplot(fig)
 
 # ================= VISUAL INSIGHTS =================
 st.markdown("## 🧠 Insights")
@@ -732,82 +738,69 @@ with ins3:
 
 # Premium-only charts & insights
 if st.session_state.tier == "premium":
-    st.markdown("## 📈 Risk Breakdown (Premium)")
-    fig3, ax3 = plt.subplots(figsize=(6,4))
-    df['risk_category'].value_counts().plot(kind='pie', autopct='%1.1f%%', ax=ax3)
-    ax3.set_ylabel('')
-    ax3.set_title("Risk Category %")
-    st.pyplot(fig3)
+    st.markdown("## 📈 Risk Breakdown")
+    fig2, ax2 = plt.subplots(figsize=(6,4))
+    df['risk_category'].value_counts().plot(kind='pie', autopct='%1.1f%%', ax=ax2)
+    ax2.set_ylabel('')
+    ax2.set_title("Risk Category Share")
+    st.pyplot(fig2)
 
-    # ================= NEW GRAPH: Risk by Satisfaction =================
-    st.markdown("## 📊 Satisfaction vs Risk (Premium)")
-    fig4, ax4 = plt.subplots(figsize=(8,3))
-    ax4.scatter(df['satisfaction_score'], df['flight_risk'])
-    ax4.set_title("Satisfaction vs Flight Risk")
-    ax4.set_xlabel("Satisfaction Score")
-    ax4.set_ylabel("Flight Risk (%)")
-    ax4.grid(True, linestyle='--', alpha=0.5)
-    st.pyplot(fig4)
+    st.markdown("## 🧩 Retention Recommendations")
 
-    st.markdown("## 🧩 Retention Recommendations (Premium)")
-    st.write("Top retention actions based on risk score:")
+    st.write("### 🔥 Immediate Actions (Within 24-48 hours)")
+    st.write("- **High Risk:** Offer immediate retention bonus, urgent manager meeting, or role change")
+    st.write("- **Medium Risk:** Recognition call, team appreciation, small rewards")
+    st.write("- **Low Risk:** Maintain motivation with appreciation")
 
-    st.markdown("### 🔴 High Risk (70%+)")
-    st.write("- Immediate retention bonus or compensation review")
-    st.write("- Immediate 1:1 manager meeting (within 24 hrs)")
-    st.write("- Role change or internal transfer")
-    st.write("- Flexible work hours or work-from-home options")
-    st.write("- Fast-track promotion or career path clarity")
-    st.write("- Offer training/skill upgrade plan")
-    st.write("- Reduce workload or redistribute tasks")
-    st.write("- Provide mentorship & leadership support")
+    st.write("### ⏳ Short Term Actions (1-4 weeks)")
+    st.write("- **High Risk:** Performance feedback, career growth plan, mentor support")
+    st.write("- **Medium Risk:** Training sessions, upskilling, clear goals")
+    st.write("- **Low Risk:** Employee engagement programs")
 
-    st.markdown("### 🟠 Medium Risk (50% - 69%)")
-    st.write("- Short-term recognition & rewards")
-    st.write("- Improve engagement through team events")
-    st.write("- Provide feedback & growth plan")
-    st.write("- Increase visibility in projects")
-    st.write("- Offer flexible schedule for 2-4 weeks")
-    st.write("- Mentorship program enrollment")
-    st.write("- Quarterly salary review / appraisal")
-    st.write("- Provide skill-building training")
+    st.write("### 📌 Long Term Actions (1-6 months)")
+    st.write("- **High Risk:** Salary hike, promotion roadmap, role redesign")
+    st.write("- **Medium Risk:** Leadership mentoring, role clarity")
+    st.write("- **Low Risk:** Retention through career pathing & growth")
 
-    st.markdown("### 🟢 Low Risk (Below 50%)")
-    st.write("- Keep motivation high with recognition")
-    st.write("- Encourage internal growth & promotions")
-    st.write("- Provide continuous learning & training")
-    st.write("- Maintain transparent communication")
-    st.write("- Improve employee wellness & work-life balance")
-    st.write("- Ensure career path clarity")
+    st.write("### 🔍 Extra Retention Recommendations")
+    st.write("- Improve work-life balance & reduce overtime")
+    st.write("- Increase transparency & career path clarity")
+    st.write("- Offer flexible work options")
+    st.write("- Conduct stay interviews")
+    st.write("- Improve manager-employee relationship")
 
-    # ================= FLIGHT RISK SIMULATION =================
-    st.markdown("## ✨ Flight Risk Simulation (Premium)")
-    st.write("Adjust values and simulate the employee flight risk.")
+# ================= FLIGHT RISK SIMULATION =================
+st.markdown("## ✈️ Flight Risk Simulator (Try it)")
 
-    sim_satisfaction = st.slider("Satisfaction Score (1-10)", 1, 10, 6)
-    sim_engagement = st.slider("Engagement Score (1-10)", 1, 10, 6)
-    sim_hike = st.slider("Months since last hike", 0, 36, 12)
-    sim_overtime = st.slider("Overtime hours/month", 0, 80, 10)
-    sim_distance = st.slider("Distance from home (km)", 1, 40, 10)
+colA, colB = st.columns(2)
+with colA:
+    sat = st.slider("Satisfaction Score", 1, 10, 7)
+    eng = st.slider("Engagement Score", 1, 10, 6)
+    hike = st.slider("Months Since Last Hike", 0, 36, 10)
 
-    sim_df = pd.DataFrame([{
-        "satisfaction_score": sim_satisfaction,
-        "engagement_score": sim_engagement,
-        "last_hike_months": sim_hike,
-        "overtime_hours": sim_overtime,
-        "distance_from_home": sim_distance
-    }])
+with colB:
+    ot = st.slider("Overtime Hours/Month", 0, 80, 12)
+    dist = st.slider("Distance from Home (km)", 1, 40, 12)
 
-    sim_scaled = scaler.transform(sim_df)
-    sim_risk = model.predict_proba(sim_scaled)[0][1] * 100
+sim_data = pd.DataFrame({
+    "satisfaction_score": [sat],
+    "engagement_score": [eng],
+    "last_hike_months": [hike],
+    "overtime_hours": [ot],
+    "distance_from_home": [dist]
+})
 
-    st.markdown(f"### **Predicted Flight Risk: {sim_risk:.0f}%**")
-    if sim_risk >= 70:
-        st.warning("High Risk — Immediate retention action required")
-    elif sim_risk >= 50:
-        st.info("Medium Risk — Take action soon")
-    else:
-        st.success("Low Risk — Maintain engagement")
+sim_scaled = scaler.transform(sim_data)
+sim_prob = model.predict_proba(sim_scaled)[0][1] * 100
+
+st.markdown(f"""
+<div class="compare fade">
+    <h3>Simulator Result</h3>
+    <p style="color:#cbd5f5; font-size:16px; line-height:1.7;">
+        Flight Risk Score: <b>{sim_prob:.1f}%</b>
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
 st.download_button(
     "⬇️ Download Full Report",
@@ -815,22 +808,18 @@ st.download_button(
     "staysmart_ai_report.csv"
 )
 
-# ================= ABOUT US SECTION =================
-st.markdown("""
-<div class="compare fade" style="margin-top:30px;">
-    <h3>About Us</h3>
-    <p style="color:#cbd5f5; font-size:16px;">
-        StaySmart AI is built for modern enterprises to help HR teams predict attrition risk and retain top talent.
-        Our AI analyzes employee engagement, satisfaction, overtime and more to provide actionable insights.
-    </p>
-</div>
-""", unsafe_allow_html=True)
-
 # ================= ABOUT US FOOTER =================
 st.markdown("""
+<div class="compare fade">
+    <h3>About Us</h3>
+    <p style="color:#cbd5f5; font-size:16px; line-height:1.7;">
+        StaySmart AI is a HR intelligence tool built for modern enterprises.
+        Our AI predicts attrition risk and helps HR teams retain top talent using data-driven insights.
+        © 2026 EXQ-16. All Rights Reserved.
+    </p>
+</div>
+
 <div class="footer">
-<b>About Us</b><br>
-StaySmart AI is a HR intelligence tool built for modern enterprises. Our AI predicts attrition risk and helps HR teams retain top talent using data-driven insights.<br>
-© 2026 EXQ-16. All Rights Reserved.
+StaySmart AI – Built for modern HR teams
 </div>
 """, unsafe_allow_html=True)

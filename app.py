@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-"""StaySmart AI – Enterprise HR Intelligence"""
+"""StaySmart AI – Enterprise HR Intelligence (Restored Logic + Pro UI)"""
 
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import plotly.express as px # Added for better visuals
 
 # ================= PAGE CONFIG =================
 st.set_page_config(
-    page_title="StaySmart AI | HR Intelligence",
+    page_title="StaySmart AI",
     layout="wide",
     page_icon="🧠"
 )
@@ -27,121 +27,54 @@ LICENSE_KEYS = {
     "premium": ["SSAI-PRM-X8LQ-4R2Z-M9KP"]
 }
 
-# ================= ADVANCED UI STYLING =================
+# ================= STYLES =================
 st.markdown("""
 <style>
-    /* Global Styles */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
-    
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
-        background-color: #020617;
-    }
+/* Modern Dark Theme */
+[data-testid="stAppViewContainer"] {
+    background: radial-gradient(circle at 50% -20%, #1e293b, #020617);
+}
 
-    .main {
-        background: radial-gradient(circle at top right, #1e1b4b, #020617);
-    }
+/* Hero Section */
+.hero { text-align:center; padding:60px 0; }
+.hero h1 {
+    font-size: 55px; font-weight: 800;
+    background: linear-gradient(90deg, #fff, #94a3b8);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero p { color: #94a3b8; font-size: 1.2rem; }
 
-    /* Hero Section */
-    .hero {
-        text-align: center;
-        padding: 80px 20px;
-        background: linear-gradient(180deg, rgba(30,58,138,0.2) 0%, rgba(2,6,23,0) 100%);
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-        margin-bottom: 50px;
-    }
+/* Plan Cards - Glassmorphism */
+.plan-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 35px;
+    border-radius: 25px;
+    transition: 0.4s;
+}
+.plan-card:hover {
+    border-color: #6366f1;
+    box-shadow: 0 0 25px rgba(99, 102, 241, 0.2);
+}
 
-    .hero h1 {
-        font-size: 64px;
-        font-weight: 800;
-        background: linear-gradient(to right, #ffffff, #94a3b8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: -2px;
-    }
+.price { font-size: 32px; font-weight: 800; color: #fff; margin: 15px 0; }
+.badge {
+    padding: 5px 12px; border-radius: 8px; font-weight: 700; font-size: 12px;
+}
+.standard-badge { background: #0ea5e922; color: #0ea5e9; border: 1px solid #0ea5e944; }
+.premium-badge { background: #f59e0b22; color: #f59e0b; border: 1px solid #f59e0b44; }
 
-    /* Plan Cards (Glassmorphism) */
-    .plan-card {
-        background: rgba(30, 41, 59, 0.4);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 45px;
-        border-radius: 32px;
-        height: 100%;
-        transition: all 0.4s ease;
-    }
+/* Buttons */
+.stButton button {
+    border-radius: 12px; width: 100%; font-weight: 600; padding: 10px;
+    background: #6366f1 !important; color: white !important; border: none !important;
+}
 
-    .plan-card:hover {
-        border: 1px solid rgba(99, 102, 241, 0.5);
-        box-shadow: 0 0 30px rgba(79, 70, 229, 0.15);
-        transform: translateY(-5px);
-    }
-
-    .plan-title {
-        font-size: 24px;
-        font-weight: 700;
-        color: #f8fafc;
-        margin-top: 20px;
-    }
-
-    .price {
-        font-size: 36px;
-        font-weight: 800;
-        color: #ffffff;
-        margin: 25px 0;
-    }
-
-    .price span { font-size: 16px; color: #94a3b8; font-weight: 400; }
-
-    .badge {
-        padding: 6px 14px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-    }
-    .standard { background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.2); }
-    .premium { background: rgba(249, 115, 22, 0.1); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.2); }
-
-    /* Tables */
-    table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0 10px;
-        margin-top: 20px;
-    }
-
-    th { color: #94a3b8; text-align: left; padding: 15px; font-weight: 600; }
-    td { background: rgba(255,255,255,0.03); padding: 15px; color: #e2e8f0; }
-    td:first-child { border-radius: 12px 0 0 12px; }
-    td:last-child { border-radius: 0 12px 12px 0; }
-
-    /* Buttons Override */
-    .stButton>button {
-        width: 100%;
-        border-radius: 14px;
-        padding: 12px;
-        background: #4f46e5 !important;
-        color: white !important;
-        border: none !important;
-        font-weight: 600;
-        transition: 0.3s;
-    }
-    
-    .stButton>button:hover {
-        box-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
-        transform: scale(1.02);
-    }
-
-    /* Dashboard Elements */
-    .metric-card {
-        background: rgba(15, 23, 42, 0.8);
-        padding: 20px;
-        border-radius: 16px;
-        border-left: 4px solid #4f46e5;
-    }
+/* Compare Table */
+.compare-container {
+    background: rgba(0,0,0,0.2); border-radius: 20px; padding: 30px; margin-top: 40px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -149,35 +82,26 @@ st.markdown("""
 # =============== STEP 1: PLAN SELECT ===============
 # =================================================
 if st.session_state.step == "plan":
-
-    st.markdown("""
-    <div class="hero">
-        <p style="color:#818cf8; font-weight:600; margin-bottom:0;">AI-POWERED RETENTION</p>
-        <h1>StaySmart AI</h1>
-        <p style="color:#94a3b8; max-width:600px; margin: 20px auto;">
-            The enterprise-grade intelligence layer that predicts attrition and provides 
-            actionable insights to keep your best talent.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="hero"><h1>StaySmart AI</h1><p>Predict Attrition • Reduce Risk • Retain Talent</p></div>', unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
     with col1:
         st.markdown("""
         <div class="plan-card">
-            <span class="badge standard">Basic Growth</span>
-            <div class="plan-title">HR Risk Monitoring</div>
-            <div class="price">₹100 <span>/ employee / month</span></div>
-            <ul style="color:#cbd5e1; line-height:1.8;">
-                <li>Employee flight risk scoring</li>
-                <li>Predictive risk categorization</li>
-                <li>Real-time visual dashboards</li>
-                <li>Priority risk alerts</li>
+            <span class="badge standard-badge">STANDARD</span>
+            <h2 style="color:white; margin-top:10px;">HR Risk Monitoring</h2>
+            <p style="color:#94a3b8;">Identify employees who may leave and monitor risk levels.</p>
+            <div class="price">₹100 <span style="font-size:16px; color:#64748b;">/ employee / month</span></div>
+            <ul style="color:#cbd5e1; font-size:14px;">
+                <li>Employee flight risk score</li>
+                <li>High / Medium / Low risk tags</li>
+                <li>Top risk employees list</li>
+                <li>Visual Risk Dashboards</li>
             </ul>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Get Started with Standard", key="btn_std"):
+        if st.button("Select Standard Plan", key="sel_std"):
             st.session_state.tier = "standard"
             st.session_state.step = "auth"
             st.rerun()
@@ -185,33 +109,31 @@ if st.session_state.step == "plan":
     with col2:
         st.markdown("""
         <div class="plan-card">
-            <span class="badge premium">Enterprise ML</span>
-            <div class="plan-title">Predictive HR Intelligence</div>
-            <div class="price">₹150 <span>/ employee / month</span></div>
-            <ul style="color:#cbd5e1; line-height:1.8;">
+            <span class="badge premium-badge">PREMIUM</span>
+            <h2 style="color:white; margin-top:10px;">Predictive HR Intelligence</h2>
+            <p style="color:#94a3b8;">Deep insights into why employees leave and what to do next.</p>
+            <div class="price">₹150 <span style="font-size:16px; color:#64748b;">/ employee / month</span></div>
+            <ul style="color:#cbd5e1; font-size:14px;">
                 <li>Everything in Standard</li>
-                <li>Attrition financial impact cost</li>
-                <li>AI-driven retention strategy</li>
-                <li>Automated reason analysis</li>
+                <li>Attrition cost estimation</li>
+                <li>Key reason analysis</li>
+                <li>Retention recommendations</li>
             </ul>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Get Started with Premium", key="btn_prm"):
+        if st.button("Select Premium Plan", key="sel_prm"):
             st.session_state.tier = "premium"
             st.session_state.step = "auth"
             st.rerun()
 
-    # Comparison Section
-    st.markdown("<br><br>", unsafe_allow_html=True)
     st.markdown("""
-    <div style="background:rgba(255,255,255,0.02); padding:40px; border-radius:24px;">
-        <h3 style="color:white; margin-bottom:20px;">Platform Capabilities</h3>
-        <table>
-            <tr><th>Capability</th><th>Standard</th><th>Premium</th></tr>
-            <tr><td>Machine Learning Risk Score</td><td>✔</td><td>✔</td></tr>
-            <tr><td>Employee Health Dashboard</td><td>✔</td><td>✔</td></tr>
-            <tr><td>Attrition Cost Logic</td><td>✘</td><td>✔</td></tr>
-            <tr><td>Retention Strategic Playbook</td><td>✘</td><td>✔</td></tr>
+    <div class="compare-container">
+        <h3 style="color:white; margin-bottom:20px;">Feature Comparison</h3>
+        <table style="width:100%; color:#94a3b8;">
+            <tr style="border-bottom:1px solid #334155;"><th style="text-align:left;">Feature</th><th>Standard</th><th>Premium</th></tr>
+            <tr><td>Flight Risk Score</td><td>✔</td><td>✔</td></tr>
+            <tr><td>Retention Recommendations</td><td>✘</td><td>✔</td></tr>
+            <tr><td>Financial Risk Impact</td><td>✘</td><td>✔</td></tr>
         </table>
     </div>
     """, unsafe_allow_html=True)
@@ -221,58 +143,90 @@ if st.session_state.step == "plan":
 # =============== STEP 2: AUTH =====================
 # =================================================
 if st.session_state.step == "auth":
-    col_a, col_b, col_c = st.columns([1,2,1])
-    with col_b:
-        st.markdown(f"<h2 style='text-align:center; color:white;'>Unlock {st.session_state.tier.title()} Dashboard</h2>", unsafe_allow_html=True)
-        key = st.text_input("Enter Enterprise License Key", type="password")
-        if st.button("Verify Credentials"):
+    col_x, col_y, col_z = st.columns([1,2,1])
+    with col_y:
+        st.markdown(f"<h3 style='text-align:center; color:white;'>Enter {st.session_state.tier.upper()} License</h3>", unsafe_allow_html=True)
+        key = st.text_input("License Key", type="password")
+        if st.button("Unlock Dashboard"):
             if key.strip().upper() in [k.upper() for k in LICENSE_KEYS[st.session_state.tier]]:
                 st.session_state.authenticated = True
                 st.session_state.step = "dashboard"
                 st.rerun()
             else:
-                st.error("Authentication Failed: Invalid Key")
+                st.error("Invalid license key")
     st.stop()
 
 # =================================================
 # =============== STEP 3: DASHBOARD ================
 # =================================================
 if st.session_state.authenticated:
-    st.markdown(f"""
-        <div style='display:flex; justify-content:space-between; align-items:center;'>
-            <h1 style='color:white;'>StaySmart AI <span style='font-size:14px; color:#4f46e5;'>{st.session_state.tier.upper()} ACCESS</span></h1>
-        </div>
-    """, unsafe_allow_html=True)
-
-    with st.expander("📁 Data Import", expanded=True):
-        file = st.file_uploader("Upload Employee Data (CSV)", type=["csv"])
-
+    st.title("StaySmart AI Dashboard")
+    
+    file = st.file_uploader("Upload Employee Data (CSV)", type=["csv"])
     if not file:
-        st.info("Please upload your employee dataset to begin analysis.")
+        st.info("Awaiting CSV upload...")
         st.stop()
 
-    # Data Processing Logic
     df = pd.read_csv(file)
     df.columns = df.columns.str.lower().str.replace(" ", "_")
 
-    required = ['satisfaction_score','engagement_score','last_hike_months','overtime_hours','distance_from_home']
+    # Data Simulation logic
+    required = ['satisfaction_score','engagement_score','last_hike_months','overtime_hours','distance_from_home','salary']
     for c in required:
         if c not in df:
-            df[c] = np.random.randint(1,10,len(df))
+            if 'salary' in c: df[c] = np.random.randint(30000, 150000, len(df))
+            else: df[c] = np.random.randint(1,10,len(df))
 
-    df['risk'] = (10-df['satisfaction_score'])*0.3 + (10-df['engagement_score'])*0.3
+    # Risk Math
+    df['risk'] = ((10-df['satisfaction_score'])*0.4 + (df['overtime_hours']*0.2) + (10-df['engagement_score'])*0.4).clip(0,10)
     
-    # Dashboard Layout
-    m1, m2, m3 = st.columns(3)
-    m1.metric("Total Headcount", len(df))
-    m2.metric("Avg Risk Score", f"{df['risk'].mean():.2f}")
-    m3.metric("Critical Alerts", len(df[df['risk'] > 7]))
+    # Visuals
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Headcount", len(df))
+    c2.metric("High Risk Staff", len(df[df['risk'] > 7]))
+    c3.metric("Avg Engagement", f"{df['engagement_score'].mean():.1f}/10")
 
-    st.markdown("### 📊 Employee Intelligence Overview")
-    st.dataframe(df.style.background_gradient(subset=['risk'], cmap='RdYlGn_r'), use_container_width=True)
+    # Chart Area
+    st.markdown("### 📈 Risk Distribution")
+    fig = px.histogram(df, x="risk", nbins=20, color_discrete_sequence=['#6366f1'])
+    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white")
+    st.plotly_chart(fig, use_container_width=True)
 
+    st.markdown("### 📋 Employee Risk Table")
+    st.dataframe(df[['satisfaction_score', 'engagement_score', 'risk']].style.background_gradient(cmap='RdYlGn_r'), use_container_width=True)
+
+    # ================= PREMIUM INSIGHTS =================
     if st.session_state.tier == "premium":
         st.markdown("---")
-        st.markdown("### 💎 Premium Insights: Attrition Cost Analysis")
-        cost = len(df[df['risk'] > 5]) * 50000 # Example math
-        st.error(f"Estimated Replacement Cost Risk: ₹{cost:,}")
+        st.markdown("### 💎 Executive Intelligence (Premium)")
+        
+        # Attrition Cost Logic
+        avg_salary = df['salary'].mean()
+        high_risk_count = len(df[df['risk'] > 7])
+        potential_loss = high_risk_count * (avg_salary * 0.5) # 50% of salary as turnover cost
+        
+        p1, p2 = st.columns(2)
+        with p1:
+            st.error(f"Financial Risk Exposure: ₹{potential_loss:,.0f}")
+            st.write("Calculated based on 50% of annual salary for high-risk individuals.")
+        
+        with p2:
+            st.markdown("**Core Attrition Drivers:**")
+            st.warning("1. High Overtime Hours\n2. Low Engagement Score\n3. Tenure vs Market Pay")
+
+        st.markdown("### 🛠 Retention Recommendations")
+        rec_col1, rec_col2 = st.columns(2)
+        with rec_col1:
+            st.success("**Immediate Actions**")
+            st.write("* Initiate stay-interviews for Top 10 High-Risk staff.\n* Review workload for departments with >8 overtime hours.")
+        with rec_col2:
+            st.success("**Strategic Moves**")
+            st.write("* Adjust Hike cycles for employees under-market.\n* Launch Engagement Program for remote staff.")
+
+    else:
+        st.info("💡 Upgrade to Premium to see Attrition Cost Analysis and Retention Recommendations.")
+
+    if st.button("Log Out"):
+        st.session_state.step = "plan"
+        st.session_state.authenticated = False
+        st.rerun()

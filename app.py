@@ -7,7 +7,6 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
-import datetime
 
 # ================= PAGE CONFIG =================
 st.set_page_config(
@@ -25,10 +24,6 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 if "nav" not in st.session_state:
     st.session_state.nav = "Home"
-if "paid" not in st.session_state:
-    st.session_state.paid = False
-if "invoice" not in st.session_state:
-    st.session_state.invoice = None
 
 # ================= LICENSE KEYS =================
 LICENSE_KEYS = {
@@ -39,7 +34,20 @@ LICENSE_KEYS = {
 # ================= STYLES =================
 st.markdown("""
 <style>
-body { background:#0b1220; }
+body {
+    background: radial-gradient(circle at top left, #1f2a63, #0b1220 60%, #060a12 100%);
+    color:#e5e7eb;
+    font-family: "Segoe UI", sans-serif;
+}
+
+.fade {
+    animation: fadeIn 0.9s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(10px);}
+    to {opacity: 1; transform: translateY(0px);}
+}
 
 .hero {
     text-align:center;
@@ -58,22 +66,28 @@ body { background:#0b1220; }
 }
 
 .plan-card {
-    background:#ffffff;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
     padding:40px;
     border-radius:28px;
     box-shadow:0 30px 70px rgba(0,0,0,0.35);
     height:100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.plan-card:hover{
+    transform: translateY(-6px);
+    box-shadow:0 40px 90px rgba(0,0,0,0.55);
 }
 
 .plan-title {
     font-size:28px;
     font-weight:800;
-    color:#0f172a;
+    color:#e5e7eb;
     margin-top:15px;
 }
 
 .plan-desc {
-    color:#475569;
+    color:#cbd5f5;
     font-size:16px;
     margin:15px 0;
 }
@@ -81,13 +95,13 @@ body { background:#0b1220; }
 .price {
     font-size:40px;
     font-weight:800;
-    color:#111827;
+    color:#fff;
     margin:20px 0;
 }
 
 ul {
     padding-left:20px;
-    color:#334155;
+    color:#cbd5f5;
     font-size:15px;
 }
 
@@ -106,11 +120,12 @@ li {
 .premium { background:#fff7ed; color:#c2410c; }
 
 .req-box {
-    background:#0f172a;
+    background: rgba(15,23,42,0.85);
     color:#e5e7eb;
     padding:28px;
     border-radius:20px;
     margin-top:30px;
+    border: 1px solid rgba(255,255,255,0.12);
 }
 
 .req-box h4 {
@@ -122,10 +137,11 @@ li {
 }
 
 .compare {
-    background:#0f172a;
+    background: rgba(15,23,42,0.75);
     padding:25px;
     border-radius:25px;
     margin-top:30px;
+    border: 1px solid rgba(255,255,255,0.12);
 }
 
 .compare h3 {
@@ -139,7 +155,7 @@ li {
 }
 
 .compare th, .compare td {
-    border:1px solid #334155;
+    border:1px solid rgba(255,255,255,0.12);
     padding:10px;
     text-align:center;
     color:#cbd5f5;
@@ -151,7 +167,7 @@ li {
 }
 
 .compare td {
-    background:#0b1220;
+    background: rgba(11,18,32,0.75);
 }
 
 .check {
@@ -164,41 +180,104 @@ li {
     font-weight:700;
 }
 
-/* NEW: Cool animated background */
-.bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  background: radial-gradient(circle at 20% 20%, rgba(124,58,237,0.35), transparent 40%),
-              radial-gradient(circle at 80% 30%, rgba(34,211,238,0.25), transparent 45%),
-              radial-gradient(circle at 50% 80%, rgba(16,185,129,0.22), transparent 50%),
-              linear-gradient(135deg, #0b1220 0%, #0a0f1a 100%);
-  animation: bgmove 10s infinite alternate;
+.dashboard-header {
+    background: linear-gradient(135deg,#4f46e5,#7c3aed);
+    padding:40px;
+    border-radius:30px;
+    margin-bottom:30px;
+    border: 1px solid rgba(255,255,255,0.2);
 }
 
-@keyframes bgmove {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.02); }
+.dashboard-header h1, .dashboard-header p {
+    margin:0;
 }
 
-/* Premium insight boxes */
-.insight-box {
+.insight-card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
     border-radius:20px;
     padding:20px;
-    color:white;
-    margin-top:15px;
+    transition: transform 0.3s ease;
 }
-.immediate { background:#ef4444; }
-.short { background:#f59e0b; }
-.long { background:#10b981; }
+.insight-card:hover{
+    transform: translateY(-4px);
+}
+
+.insight-title {
+    font-weight:800;
+    font-size:18px;
+    color:#fff;
+}
+
+.insight-desc {
+    color:#cbd5f5;
+    margin-top:6px;
+    font-size:14px;
+}
+
+.insight-value {
+    font-size:24px;
+    font-weight:800;
+    margin-top:10px;
+}
+
+.actions {
+    display:flex;
+    gap:15px;
+}
+
+.action-box {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius:20px;
+    padding:18px;
+}
+
+.action-box h4 {
+    margin:0;
+    color:#fff;
+}
+
+.action-box p {
+    margin:6px 0 0 0;
+    color:#cbd5f5;
+    font-size:14px;
+}
+
+.action-box .tag {
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:15px;
+    font-weight:700;
+    margin-top:10px;
+    font-size:12px;
+}
+
+.tag-high { background:#fca5a5; color:#7f1d1d; }
+.tag-med { background:#fde68a; color:#92400e; }
+.tag-low { background:#a7f3d0; color:#064e3b; }
+
+.logo {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:20px;
+}
+.logo img {
+    height:44px;
+    width:44px;
+    border-radius:12px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.logo h2 {
+    margin:0;
+    font-size:22px;
+    font-weight:800;
+    color:#fff;
+}
 
 </style>
 """, unsafe_allow_html=True)
-
-st.markdown('<div class="bg"></div>', unsafe_allow_html=True)
 
 # =================================================
 # =============== STEP 1: PLAN SELECT ===============
@@ -206,7 +285,14 @@ st.markdown('<div class="bg"></div>', unsafe_allow_html=True)
 if st.session_state.step == "plan":
 
     st.markdown("""
-    <div class="hero">
+    <div class="logo">
+        <img src="https://img.icons8.com/fluency/48/000000/brain.png" />
+        <h2>StaySmart AI</h2>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="hero fade">
         <h1>StaySmart AI</h1>
         <p>Predict Attrition • Reduce Risk • Retain Talent</p>
     </div>
@@ -216,7 +302,7 @@ if st.session_state.step == "plan":
 
     with col1:
         st.markdown("""
-        <div class="plan-card">
+        <div class="plan-card fade">
             <span class="badge standard">STANDARD</span>
             <div class="plan-title">HR Risk Monitoring</div>
             <div class="plan-desc">
@@ -239,7 +325,7 @@ if st.session_state.step == "plan":
 
     with col2:
         st.markdown("""
-        <div class="plan-card">
+        <div class="plan-card fade">
             <span class="badge premium">PREMIUM</span>
             <div class="plan-title">Predictive HR Intelligence</div>
             <div class="plan-desc">
@@ -263,7 +349,7 @@ if st.session_state.step == "plan":
 
     # ================= COMPARISON TABLE =================
     st.markdown("""
-    <div class="compare">
+    <div class="compare fade">
         <h3>Plan Comparison</h3>
         <table>
             <tr>
@@ -311,11 +397,18 @@ if st.session_state.step == "auth":
     price = "₹100 / employee / month" if tier == "standard" else "₹150 / employee / month"
 
     st.markdown(f"""
-    <div class="plan-card" style="max-width:620px;margin:auto;">
+    <div class="logo">
+        <img src="https://img.icons8.com/fluency/48/000000/brain.png" />
+        <h2>StaySmart AI</h2>
+    </div>
+    """ , unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <div class="plan-card fade" style="max-width:620px;margin:auto;">
         <span class="badge {'standard' if tier=='standard' else 'premium'}">
             {tier.upper()} PLAN
         </span>
-        <p style="margin-top:10px;font-weight:600;color:#334155">{price}</p>
+        <p style="margin-top:10px;font-weight:600;color:#cbd5f5">{price}</p>
     """, unsafe_allow_html=True)
 
     st.markdown("""
@@ -334,80 +427,20 @@ if st.session_state.step == "auth":
     </div>
     """, unsafe_allow_html=True)
 
-    # ================= REALISTIC COMPANY SUBSCRIPTION PAYMENT =================
-    st.markdown("## 🔒 Subscription Payment (Company Billing)")
+    key = st.text_input(
+        "Enter License Key",
+        placeholder="SSAI-XXXX-XXXX-XXXX",
+        type="password"
+    )
 
-    with st.expander("Company Billing Details"):
-        company_name = st.text_input("Company Name")
-        company_email = st.text_input("Company Email")
-        employees_count = st.number_input("Number of Employees", min_value=1, max_value=10000, value=50)
-        billing_cycle = st.selectbox("Billing Cycle", ["Monthly", "Yearly"])
-
-        # Calculating subscription amount
-        base_price = 100 if tier == "standard" else 150
-        total_price = base_price * employees_count
-        if billing_cycle == "Yearly":
-            total_price *= 12
-            total_price *= 0.9  # 10% discount for yearly
-
-        st.markdown(f"**Total Amount:** ₹{int(total_price)}")
-
-    # Generate invoice
-    if st.button("Generate Invoice"):
-        st.session_state.invoice = {
-            "invoice_id": f"INV-{np.random.randint(100000,999999)}",
-            "date": str(datetime.date.today()),
-            "company": company_name,
-            "email": company_email,
-            "employees": employees_count,
-            "cycle": billing_cycle,
-            "amount": int(total_price)
-        }
-        st.success("Invoice generated successfully!")
-
-    if st.session_state.invoice:
-        inv = st.session_state.invoice
-        st.markdown(f"""
-        <div style="background:#0f172a; padding:20px; border-radius:20px; color:#e5e7eb;">
-        <b>Invoice ID:</b> {inv['invoice_id']}  |  
-        <b>Date:</b> {inv['date']}  |  
-        <b>Amount:</b> ₹{inv['amount']}  
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Card payment (simulated)
-    if not st.session_state.paid:
-        st.markdown("### Payment Method (Simulated Gateway)")
-        name = st.text_input("Name on Card")
-        card = st.text_input("Card Number", max_chars=16)
-        expiry = st.text_input("Expiry (MM/YY)", max_chars=5)
-        cvv = st.text_input("CVV", max_chars=3, type="password")
-
-        if st.button("Pay Now"):
-            if len(card) == 16 and len(expiry) == 5 and len(cvv) == 3 and name.strip() != "" and st.session_state.invoice:
-                st.session_state.paid = True
-                st.success("✅ Payment successful! License key entry unlocked.")
-            else:
-                st.error("❌ Payment failed. Make sure invoice is generated and card details are correct.")
-    else:
-        st.success("Payment completed. License key entry is now available.")
-
-    # ================= LICENSE KEY ONLY AFTER PAYMENT =================
-    if st.session_state.paid:
-        key = st.text_input(
-            "Enter License Key",
-            placeholder="SSAI-XXXX-XXXX-XXXX",
-            type="password"
-        )
-
-        if st.button("Verify & Open Dashboard"):
-            if key.strip().upper() in [k.upper() for k in LICENSE_KEYS[tier]]:
-                st.session_state.authenticated = True
-                st.session_state.step = "dashboard"
-                st.session_state.nav = "Dashboard"
-                st.rerun()
-            else:
-                st.error("❌ Invalid license key for selected plan")
+    if st.button("Verify & Open Dashboard"):
+        if key.strip().upper() in [k.upper() for k in LICENSE_KEYS[tier]]:
+            st.session_state.authenticated = True
+            st.session_state.step = "dashboard"
+            st.session_state.nav = "Dashboard"
+            st.rerun()
+        else:
+            st.error("❌ Invalid license key for selected plan")
 
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
@@ -418,24 +451,17 @@ if st.session_state.step == "auth":
 if not st.session_state.authenticated:
     st.stop()
 
-# ================= NAV + LOGOUT =================
-st.sidebar.title("Navigation")
-if st.sidebar.button("Logout / Reset"):
-    st.session_state.step = "plan"
-    st.session_state.tier = None
-    st.session_state.authenticated = False
-    st.session_state.nav = "Home"
-    st.session_state.paid = False
-    st.session_state.invoice = None
-    st.experimental_rerun()
+st.markdown("""
+<div class="logo">
+    <img src="https://img.icons8.com/fluency/48/000000/brain.png" />
+    <h2>StaySmart AI</h2>
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown("""
-<div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);
-padding:40px;border-radius:30px;margin-bottom:30px">
-<h1 style="color:white;">StaySmart AI Dashboard</h1>
-<p style="color:#e0e7ff;font-size:18px">
-AI-powered employee attrition insights
-</p>
+<div class="dashboard-header fade">
+<h1>StaySmart AI Dashboard</h1>
+<p style="font-size:18px">AI-powered employee attrition insights</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -496,6 +522,37 @@ fig, ax = plt.subplots()
 df['risk_category'].value_counts().plot(kind="bar", ax=ax)
 st.pyplot(fig)
 
+# ================= VISUAL INSIGHTS =================
+st.markdown("## 🧠 Insights")
+
+ins1, ins2, ins3 = st.columns(3)
+with ins1:
+    st.markdown("""
+    <div class="insight-card fade">
+        <div class="insight-title">Satisfaction Impact</div>
+        <div class="insight-desc">Low satisfaction increases risk quickly.</div>
+        <div class="insight-value">{:.1f}%</div>
+    </div>
+    """.format((10-df['satisfaction_score']).mean()*10), unsafe_allow_html=True)
+
+with ins2:
+    st.markdown("""
+    <div class="insight-card fade">
+        <div class="insight-title">Engagement Impact</div>
+        <div class="insight-desc">Low engagement is a strong attrition driver.</div>
+        <div class="insight-value">{:.1f}%</div>
+    </div>
+    """.format((10-df['engagement_score']).mean()*10), unsafe_allow_html=True)
+
+with ins3:
+    st.markdown("""
+    <div class="insight-card fade">
+        <div class="insight-title">Overtime Pressure</div>
+        <div class="insight-desc">High overtime increases burnout risk.</div>
+        <div class="insight-value">{:.1f}%</div>
+    </div>
+    """.format((df['overtime_hours']/80).mean()*100), unsafe_allow_html=True)
+
 # Premium-only charts & insights
 if st.session_state.tier == "premium":
     st.markdown("## 📈 Risk Breakdown")
@@ -504,52 +561,11 @@ if st.session_state.tier == "premium":
     ax2.set_ylabel('')
     st.pyplot(fig2)
 
-    # Premium insights
     st.markdown("## 🧩 Retention Recommendations")
-
-    st.markdown("""
-    <div class="insight-box immediate">
-        <h4>Immediate Actions</h4>
-        <ul>
-            <li>Offer retention bonus or salary adjustment</li>
-            <li>Provide role change or project transfer</li>
-            <li>Address immediate workload stress</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <div class="insight-box short">
-        <h4>Short-Term Actions</h4>
-        <ul>
-            <li>Increase recognition & feedback</li>
-            <li>Improve engagement through team events</li>
-            <li>Offer mentorship & career guidance</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <div class="insight-box long">
-        <h4>Long-Term Actions</h4>
-        <ul>
-            <li>Review compensation structure & hike cycle</li>
-            <li>Implement leadership development</li>
-            <li>Improve company culture & retention programs</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Risk simulation
-    st.markdown("## 🔥 Risk Simulation (Premium)")
-    sim_months = st.slider("Simulation Months", 3, 12, 6)
-    sim_risk = np.linspace(df['flight_risk'].mean(), df['flight_risk'].mean() + 10, sim_months)
-    fig3, ax3 = plt.subplots()
-    ax3.plot(range(1, sim_months + 1), sim_risk, marker='o')
-    ax3.set_title("Risk Trend Over Time")
-    ax3.set_xlabel("Months")
-    ax3.set_ylabel("Avg Risk %")
-    st.pyplot(fig3)
+    st.write("Top retention actions based on risk score:")
+    st.write("- High Risk: Offer retention bonus or role change")
+    st.write("- Medium Risk: Increase engagement & recognition")
+    st.write("- Low Risk: Keep motivation high")
 
 st.download_button(
     "⬇️ Download Full Report",

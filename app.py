@@ -60,6 +60,36 @@ body { background:#0b1220; }
     height:100%;
 }
 
+.plan-title {
+    font-size:28px;
+    font-weight:800;
+    color:#0f172a;
+    margin-top:15px;
+}
+
+.plan-desc {
+    color:#475569;
+    font-size:16px;
+    margin:15px 0;
+}
+
+.price {
+    font-size:40px;
+    font-weight:800;
+    color:#111827;
+    margin:20px 0;
+}
+
+ul {
+    padding-left:20px;
+    color:#334155;
+    font-size:15px;
+}
+
+li {
+    margin-bottom:8px;
+}
+
 .badge {
     padding:8px 18px;
     border-radius:20px;
@@ -69,6 +99,14 @@ body { background:#0b1220; }
 
 .standard { background:#e0f2fe; color:#0369a1; }
 .premium { background:#fff7ed; color:#c2410c; }
+
+.req-box {
+    background:#0f172a;
+    color:#e5e7eb;
+    padding:28px;
+    border-radius:20px;
+    margin-top:30px;
+}
 
 .compare {
     background:#0f172a;
@@ -97,9 +135,11 @@ if st.session_state.step == "plan":
         st.markdown("""
         <div class="plan-card">
             <span class="badge standard">STANDARD</span>
-            <h3>HR Risk Monitoring</h3>
-            <p>Identify employees who may leave and monitor risk levels.</p>
-            <h2>₹100 / employee / month</h2>
+            <div class="plan-title">HR Risk Monitoring</div>
+            <div class="plan-desc">
+                Identify employees who may leave and monitor risk levels.
+            </div>
+            <div class="price">₹100 / employee / month</div>
             <ul>
                 <li>Employee flight risk score</li>
                 <li>High / Medium / Low risk tags</li>
@@ -118,9 +158,11 @@ if st.session_state.step == "plan":
         st.markdown("""
         <div class="plan-card">
             <span class="badge premium">PREMIUM</span>
-            <h3>Predictive HR Intelligence</h3>
-            <p>Deep insights into why employees leave and what to do next.</p>
-            <h2>₹150 / employee / month</h2>
+            <div class="plan-title">Predictive HR Intelligence</div>
+            <div class="plan-desc">
+                Deep insights into why employees leave and what to do next.
+            </div>
+            <div class="price">₹150 / employee / month</div>
             <ul>
                 <li>Everything in Standard</li>
                 <li>Attrition cost estimation</li>
@@ -149,45 +191,162 @@ if st.session_state.step == "plan":
     </div>
     """, unsafe_allow_html=True)
 
-    # ================= ABOUT US (ENHANCED) =================
+    # ================= ABOUT US =================
     st.markdown("""
-    <div style="margin-top:90px;padding:70px;
-    background:linear-gradient(135deg,#020617,#0f172a,#1e1b4b);
-    border-radius:45px;">
-        
-        <h2 style="color:white;text-align:center;font-size:44px;">
-            About StaySmart AI
-        </h2>
-
-        <p style="color:#c7d2fe;text-align:center;font-size:18px;
-        max-width:1000px;margin:25px auto;">
-            StaySmart AI is an enterprise-grade HR intelligence platform designed
-            to help organizations predict employee attrition before it happens.
+    <div style="margin-top:80px;padding:60px;background:linear-gradient(135deg,#020617,#0f172a);
+    border-radius:40px;">
+        <h2 style="color:white;text-align:center;font-size:42px;">About StaySmart AI</h2>
+        <p style="color:#c7d2fe;text-align:center;font-size:18px;max-width:900px;margin:auto;">
+        StaySmart AI helps organizations predict employee attrition, reduce risk,
+        and make confident HR decisions using machine learning insights.
         </p>
-
-        <p style="color:#94a3b8;text-align:center;font-size:17px;
-        max-width:1000px;margin:auto;">
-            By combining behavioral indicators, engagement metrics, and machine
-            learning models, StaySmart AI delivers clear, actionable insights
-            that empower HR leaders to reduce turnover, protect talent, and
-            drive long-term workforce stability.
-        </p>
-
-        <div style="display:flex;justify-content:center;gap:40px;margin-top:40px;">
-            <div style="color:#e0e7ff;font-size:16px;">🔍 Predict Risk</div>
-            <div style="color:#e0e7ff;font-size:16px;">📊 Analyze Patterns</div>
-            <div style="color:#e0e7ff;font-size:16px;">🤝 Retain Talent</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # ================= FOOTER =================
-    st.markdown("""
-    <div style="text-align:center;margin-top:50px;
-    color:#94a3b8;font-size:14px;">
-        © 2026 StaySmart AI. All Rights Reserved. <br>
-        Team Code: <strong>EXQ-16</strong>
     </div>
     """, unsafe_allow_html=True)
 
     st.stop()
+
+# =================================================
+# =============== STEP 2: AUTH =====================
+# =================================================
+if st.session_state.step == "auth":
+
+    key = st.text_input("Enter License Key", type="password")
+
+    if st.button("Verify & Open Dashboard"):
+        if key.strip().upper() in [k.upper() for k in LICENSE_KEYS[st.session_state.tier]]:
+            st.session_state.authenticated = True
+            st.session_state.step = "dashboard"
+            st.rerun()
+        else:
+            st.error("Invalid license key")
+
+    st.stop()
+
+# =================================================
+# =============== STEP 3: DASHBOARD ================
+# =================================================
+if not st.session_state.authenticated:
+    st.stop()
+
+st.title("StaySmart AI Dashboard")
+
+file = st.file_uploader("Upload Employee CSV", type=["csv"])
+if not file:
+    st.stop()
+
+df = pd.read_csv(file)
+df.columns = df.columns.str.lower().str.replace(" ", "_")
+
+required = ['satisfaction_score','engagement_score','last_hike_months','overtime_hours','distance_from_home']
+for c in required:
+    if c not in df:
+        df[c] = np.random.randint(1,10,len(df))
+
+risk = (10-df['satisfaction_score'])*0.3 + (10-df['engagement_score'])*0.3
+df['risk'] = risk
+
+st.write(df.head())
+
+
+
+
+# ========================= NEW FEATURES ADDED BELOW =========================
+
+# ------------------------ SIDEBAR NAVIGATION ------------------------
+st.sidebar.title("StaySmart AI")
+nav = st.sidebar.radio("Navigate", ["Home", "Dashboard", "Insights", "Settings"])
+
+# ------------------------ FILTERS (Optional) ------------------------
+st.sidebar.markdown("## Filters")
+dept_col = [c for c in df.columns if "department" in c]
+if dept_col:
+    dept = st.sidebar.selectbox("Department", options=["All"] + sorted(df[dept_col[0]].unique().tolist()))
+else:
+    dept = "All"
+
+if dept != "All":
+    df = df[df[dept_col[0]] == dept]
+
+# ------------------------ RISK CATEGORY ------------------------
+def risk_category(score):
+    if score >= 7:
+        return "High"
+    elif score >= 4:
+        return "Medium"
+    else:
+        return "Low"
+
+df["risk_category"] = df["risk"].apply(risk_category)
+
+# ------------------------ METRICS CARDS ------------------------
+st.markdown("## Key Metrics")
+col1, col2, col3, col4 = st.columns(4)
+
+col1.metric("Total Employees", len(df))
+col2.metric("High Risk", len(df[df["risk_category"] == "High"]))
+col3.metric("Medium Risk", len(df[df["risk_category"] == "Medium"]))
+col4.metric("Low Risk", len(df[df["risk_category"] == "Low"]))
+
+# ------------------------ CHARTS ------------------------
+st.markdown("## Visual Insights")
+
+# Risk Distribution Pie Chart
+fig1, ax1 = plt.subplots()
+df["risk_category"].value_counts().plot.pie(
+    autopct="%1.1f%%", startangle=90, ax=ax1
+)
+ax1.set_ylabel("")
+ax1.set_title("Risk Category Distribution")
+st.pyplot(fig1)
+
+# Risk Score Histogram
+fig2, ax2 = plt.subplots()
+ax2.hist(df["risk"], bins=10)
+ax2.set_title("Risk Score Distribution")
+ax2.set_xlabel("Risk Score")
+ax2.set_ylabel("Count")
+st.pyplot(fig2)
+
+# Top Risk Employees
+st.markdown("## Top 10 Risk Employees")
+top_risk = df.sort_values(by="risk", ascending=False).head(10)
+st.table(top_risk[["risk", "risk_category"]].head(10))
+
+# ------------------------ PREMIUM SECTION ------------------------
+if st.session_state.tier == "premium":
+    st.markdown("## Premium Insights 🔥")
+
+    # Attrition Cost Estimation (simple formula)
+    avg_salary = 50000
+    df["attrition_cost"] = df["risk"] * avg_salary * 0.1
+    st.markdown("### Estimated Attrition Cost (Based on Risk)")
+    st.write(df[["risk", "attrition_cost"]].head())
+
+    # Retention Recommendations
+    st.markdown("### Retention Recommendations")
+    recs = []
+    for idx, row in df.iterrows():
+        if row["risk_category"] == "High":
+            recs.append("Reduce overtime / Improve engagement / Increase salary")
+        elif row["risk_category"] == "Medium":
+            recs.append("Monitor closely / Offer training")
+        else:
+            recs.append("Keep monitoring")
+    df["recommendation"] = recs
+    st.write(df[["risk_category", "recommendation"]].head(10))
+
+# ------------------------ DOWNLOAD REPORT ------------------------
+st.markdown("## Download Report")
+st.download_button(
+    label="Download CSV with Risk Scores",
+    data=df.to_csv(index=False).encode("utf-8"),
+    file_name="staysmart_ai_report.csv",
+    mime="text/csv"
+)
+
+# ------------------------ FOOTER ------------------------
+st.markdown("""
+<div style='margin-top:50px; padding:20px; text-align:center; color:#c7d2fe;'>
+StaySmart AI • Enterprise HR Intelligence • © 2026
+</div>
+""", unsafe_allow_html=True)

@@ -115,6 +115,49 @@ li {
 .req-box li {
     color:#cbd5f5;
 }
+
+.compare {
+    background:#0f172a;
+    padding:25px;
+    border-radius:25px;
+    margin-top:30px;
+}
+
+.compare h3 {
+    color:#fff;
+    margin-bottom:10px;
+}
+
+.compare table {
+    width:100%;
+    border-collapse:collapse;
+}
+
+.compare th, .compare td {
+    border:1px solid #334155;
+    padding:10px;
+    text-align:center;
+    color:#cbd5f5;
+}
+
+.compare th {
+    background:#111827;
+    color:#fff;
+}
+
+.compare td {
+    background:#0b1220;
+}
+
+.check {
+    color:#34d399;
+    font-weight:700;
+}
+
+.cross {
+    color:#fca5a5;
+    font-weight:700;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -178,6 +221,45 @@ if st.session_state.step == "plan":
             st.session_state.tier = "premium"
             st.session_state.step = "auth"
             st.rerun()
+
+    # ================= COMPARISON TABLE =================
+    st.markdown("""
+    <div class="compare">
+        <h3>Plan Comparison</h3>
+        <table>
+            <tr>
+                <th>Feature</th>
+                <th>Standard</th>
+                <th>Premium</th>
+            </tr>
+            <tr>
+                <td>Flight Risk Score</td>
+                <td class="check">✔</td>
+                <td class="check">✔</td>
+            </tr>
+            <tr>
+                <td>Risk Categories</td>
+                <td class="check">✔</td>
+                <td class="check">✔</td>
+            </tr>
+            <tr>
+                <td>Retention Recommendations</td>
+                <td class="cross">✘</td>
+                <td class="check">✔</td>
+            </tr>
+            <tr>
+                <td>Attrition Cost Estimation</td>
+                <td class="cross">✘</td>
+                <td class="check">✔</td>
+            </tr>
+            <tr>
+                <td>Leadership Insights</td>
+                <td class="cross">✘</td>
+                <td class="check">✔</td>
+            </tr>
+        </table>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.stop()
 

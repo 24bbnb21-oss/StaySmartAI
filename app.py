@@ -24,8 +24,6 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 if "nav" not in st.session_state:
     st.session_state.nav = "Home"
-if "paid" not in st.session_state:
-    st.session_state.paid = False  # NEW: payment state
 
 # ================= LICENSE KEYS =================
 LICENSE_KEYS = {
@@ -160,30 +158,8 @@ li {
     color:#fca5a5;
     font-weight:700;
 }
-
-/* NEW: Cool animated background */
-.bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  background: radial-gradient(circle at 20% 20%, rgba(124,58,237,0.35), transparent 40%),
-              radial-gradient(circle at 80% 30%, rgba(34,211,238,0.25), transparent 45%),
-              radial-gradient(circle at 50% 80%, rgba(16,185,129,0.22), transparent 50%),
-              linear-gradient(135deg, #0b1220 0%, #0a0f1a 100%);
-  animation: bgmove 10s infinite alternate;
-}
-
-@keyframes bgmove {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.02); }
-}
 </style>
 """, unsafe_allow_html=True)
-
-st.markdown('<div class="bg"></div>', unsafe_allow_html=True)  # NEW
 
 # =================================================
 # =============== STEP 1: PLAN SELECT ===============
@@ -319,15 +295,6 @@ if st.session_state.step == "auth":
     </div>
     """, unsafe_allow_html=True)
 
-    # ================= PAYMENT GATEWAY (NEW) =================
-    st.markdown("## 🔒 Payment")
-    if not st.session_state.paid:
-        if st.button("Pay Now (Simulated Gateway)"):
-            st.session_state.paid = True
-            st.success("✅ Payment successful! Proceed to license verification.")
-    else:
-        st.success("Payment already completed.")
-
     key = st.text_input(
         "Enter License Key",
         placeholder="SSAI-XXXX-XXXX-XXXX",
@@ -351,16 +318,6 @@ if st.session_state.step == "auth":
 # =================================================
 if not st.session_state.authenticated:
     st.stop()
-
-# ================= NAV + LOGOUT ================= (NEW)
-st.sidebar.title("Navigation")
-if st.sidebar.button("Logout / Reset"):
-    st.session_state.step = "plan"
-    st.session_state.tier = None
-    st.session_state.authenticated = False
-    st.session_state.nav = "Home"
-    st.session_state.paid = False
-    st.experimental_rerun()
 
 st.markdown("""
 <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);

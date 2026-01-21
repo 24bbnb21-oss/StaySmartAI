@@ -1,13 +1,3 @@
-# -*- coding: utf-8 -*-
-"""StaySmart AI – Enterprise HR Intelligence"""
-
-import streamlit as st
-import pandas as pd
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
-
 # ================= PAGE CONFIG =================
 st.set_page_config(
     page_title="StaySmart AI",
@@ -36,286 +26,35 @@ LICENSE_KEYS = {
 # ================= STYLES =================
 st.markdown("""
 <style>
-body {
-    background: radial-gradient(circle at top left, #1f2a63, #0b1220 60%, #060a12 100%);
-    color:#e5e7eb;
-    font-family: "Segoe UI", sans-serif;
-    transition: background 0.5s ease;
-}
-
-.fade {
-    animation: fadeIn 0.9s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from {opacity: 0; transform: translateY(10px);}
-    to {opacity: 1; transform: translateY(0px);}
-}
-
-.hero {
-    text-align:center;
-    padding:70px 20px 30px;
-}
-
-.hero h1 {
-    font-size:52px;
-    font-weight:800;
-    color:white;
-}
-
-.hero p {
-    font-size:20px;
-    color:#c7d2fe;
-}
-
-.plan-card {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.12);
-    padding:40px;
-    border-radius:28px;
-    box-shadow:0 30px 70px rgba(0,0,0,0.35);
-    height:100%;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.plan-card:hover{
-    transform: translateY(-6px);
-    box-shadow:0 40px 90px rgba(0,0,0,0.55);
-}
-
-.plan-title {
-    font-size:28px;
-    font-weight:800;
-    color:#e5e7eb;
-    margin-top:15px;
-}
-
-.plan-desc {
-    color:#cbd5f5;
-    font-size:16px;
-    margin:15px 0;
-}
-
-.price {
-    font-size:40px;
-    font-weight:800;
-    color:#fff;
-    margin:20px 0;
-}
-
-ul {
-    padding-left:20px;
-    color:#cbd5f5;
-    font-size:15px;
-}
-
-li {
-    margin-bottom:8px;
-}
-
-.badge {
-    padding:8px 18px;
-    border-radius:20px;
-    font-weight:700;
-    display:inline-block;
-}
-
-.standard { background:#e0f2fe; color:#0369a1; }
-.premium { background:#fff7ed; color:#c2410c; }
-
-.req-box {
-    background: rgba(15,23,42,0.85);
-    color:#e5e7eb;
-    padding:28px;
-    border-radius:20px;
-    margin-top:30px;
-    border: 1px solid rgba(255,255,255,0.12);
-}
-
-.req-box h4 {
-    margin-bottom:10px;
-}
-
-.req-box li {
-    color:#cbd5f5;
-}
-
-.compare {
-    background: rgba(15,23,42,0.75);
-    padding:25px;
-    border-radius:25px;
-    margin-top:30px;
-    border: 1px solid rgba(255,255,255,0.12);
-}
-
-.compare h3 {
-    color:#fff;
-    margin-bottom:10px;
-}
-
-.compare table {
-    width:100%;
-    border-collapse:collapse;
-}
-
-.compare th, .compare td {
-    border:1px solid rgba(255,255,255,0.12);
-    padding:10px;
-    text-align:center;
-    color:#cbd5f5;
-}
-
-.compare th {
-    background:#111827;
-    color:#fff;
-}
-
-.compare td {
-    background: rgba(11,18,32,0.75);
-}
-
-.check {
-    color:#34d399;
-    font-weight:700;
-}
-
-.cross {
-    color:#fca5a5;
-    font-weight:700;
-}
-
-.dashboard-header {
-    background: linear-gradient(135deg,#4f46e5,#7c3aed);
-    padding:40px;
-    border-radius:30px;
-    margin-bottom:30px;
-    border: 1px solid rgba(255,255,255,0.2);
-}
-
-.dashboard-header h1, .dashboard-header p {
-    margin:0;
-}
-
-.insight-card {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius:20px;
-    padding:20px;
-    transition: transform 0.3s ease;
-}
-.insight-card:hover{
-    transform: translateY(-4px);
-}
-
-.insight-title {
-    font-weight:800;
-    font-size:18px;
-    color:#fff;
-}
-
-.insight-desc {
-    color:#cbd5f5;
-    margin-top:6px;
-    font-size:14px;
-}
-
-.insight-value {
-    font-size:24px;
-    font-weight:800;
-    margin-top:10px;
-}
-
-.actions {
-    display:flex;
-    gap:15px;
-}
-
-.action-box {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius:20px;
-    padding:18px;
-}
-
-.action-box h4 {
-    margin:0;
-    color:#fff;
-}
-
-.action-box p {
-    margin:6px 0 0 0;
-    color:#cbd5f5;
-    font-size:14px;
-}
-
-.action-box .tag {
-    display:inline-block;
-    padding:6px 10px;
-    border-radius:15px;
-    font-weight:700;
-    margin-top:10px;
-    font-size:12px;
-}
-
-.tag-high { background:#fca5a5; color:#7f1d1d; }
-.tag-med { background:#fde68a; color:#92400e; }
-.tag-low { background:#a7f3d0; color:#064e3b; }
-
-.logo {
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin-bottom:20px;
-}
-.logo img {
-    height:44px;
-    width:44px;
-    border-radius:12px;
-    border: 1px solid rgba(255,255,255,0.2);
-}
-.logo h2 {
-    margin:0;
-    font-size:22px;
-    font-weight:800;
-    color:#fff;
-}
-
-.payment-box {
-    background: rgba(15,23,42,0.85);
-    padding:25px;
-    border-radius:25px;
-    border: 1px solid rgba(255,255,255,0.12);
-    margin-top:20px;
-}
-
-.payment-box h3 {
-    margin-top:0;
-    color:#fff;
-}
-
-.payment-box input {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.12);
-    color:#e5e7eb;
-    padding:10px;
-    border-radius:10px;
-    width:100%;
-}
-
-.payment-box button {
-    background: linear-gradient(135deg,#4f46e5,#7c3aed);
-    color:#fff;
-    padding:12px 20px;
-    border:none;
-    border-radius:12px;
-    font-weight:800;
-    cursor:pointer;
-}
+/* ... keep all previous CSS unchanged ... */
 
 .footer {
     text-align:center;
     margin-top:40px;
     color:#94a3b8;
     font-size:14px;
+}
+
+.website-box {
+    background: rgba(15,23,42,0.85);
+    padding:25px;
+    border-radius:25px;
+    border: 1px solid rgba(255,255,255,0.12);
+    margin-top:25px;
+}
+
+.website-box h3 {
+    margin-top:0;
+    color:#fff;
+}
+
+.website-box p {
+    color:#cbd5f5;
+}
+
+.website-box img {
+    border-radius:18px;
+    border: 1px solid rgba(255,255,255,0.12);
 }
 </style>
 """, unsafe_allow_html=True)
@@ -339,7 +78,7 @@ if st.session_state.step == "plan":
     </div>
     """, unsafe_allow_html=True)
 
-    # ======= NEW PROFESSIONAL FRONT PAGE CONTENT =======
+    # ======= PROFESSIONAL FRONT PAGE CONTENT =======
     st.markdown("""
     <div class="req-box fade" style="max-width:1000px;margin:auto;">
         <h4>What StaySmart AI Provides</h4>
@@ -364,42 +103,24 @@ if st.session_state.step == "plan":
     </div>
     """, unsafe_allow_html=True)
 
-    # Add a small chart image
+    # ======= NEW COOL WEBSITE SECTION =======
     st.markdown("""
-    <div class="compare fade">
-        <h3>Sample Risk Distribution</h3>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # matplotlib chart
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots(figsize=(6,2))
-    ax.bar([1,2,3], [35, 50, 15])
-    ax.set_xticks([1,2,3])
-    ax.set_xticklabels(["Low", "Medium", "High"])
-    ax.set_title("Risk Example")
-    st.pyplot(fig)
-
-    # ================= TRUST LOGOS =================
-    st.markdown("""
-    <div class="compare fade">
-        <h3>Trusted By</h3>
-        <div style="display:flex; gap:25px; justify-content:center; flex-wrap:wrap;">
-            <div style="text-align:center; padding:15px;">
-                <img src="https://img.icons8.com/fluency/48/000000/briefcase.png" />
-                <p>Enterprise</p>
-            </div>
-            <div style="text-align:center; padding:15px;">
-                <img src="https://img.icons8.com/fluency/48/000000/company.png" />
-                <p>HR Teams</p>
-            </div>
-            <div style="text-align:center; padding:15px;">
-                <img src="https://img.icons8.com/fluency/48/000000/analytics.png" />
-                <p>Data Teams</p>
-            </div>
+    <div class="website-box fade" style="max-width:1000px;margin:auto;">
+        <h3>Live Dashboard Preview</h3>
+        <p>Experience a clean, modern HR dashboard layout designed for fast decision making.</p>
+        <div style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
+            <img src="https://img.icons8.com/fluency/96/000000/combo-chart.png"/>
+            <img src="https://img.icons8.com/fluency/96/000000/data-sheet.png"/>
+            <img src="https://img.icons8.com/fluency/96/000000/analytics.png"/>
         </div>
+        <p style="margin-top:15px;color:#94a3b8">
+        Secure, scalable, and built for enterprises.
+        </p>
     </div>
     """, unsafe_allow_html=True)
+
+    # ======= SPACE BEFORE PLANS =======
+    st.markdown("<br><br>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 

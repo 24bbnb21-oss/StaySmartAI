@@ -22,8 +22,6 @@ if "tier" not in st.session_state:
     st.session_state.tier = None
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
-if "nav" not in st.session_state:
-    st.session_state.nav = "Home"
 
 # ================= LICENSE KEYS =================
 LICENSE_KEYS = {
@@ -195,7 +193,7 @@ if st.session_state.step == "plan":
 
         if st.button("Select Standard Plan"):
             st.session_state.tier = "standard"
-            st.session_state.step = "auth"
+            st.session_state.step = "payment"
             st.rerun()
 
     with col2:
@@ -219,7 +217,7 @@ if st.session_state.step == "plan":
 
         if st.button("Select Premium Plan"):
             st.session_state.tier = "premium"
-            st.session_state.step = "auth"
+            st.session_state.step = "payment"
             st.rerun()
 
     # ================= COMPARISON TABLE =================
@@ -264,7 +262,25 @@ if st.session_state.step == "plan":
     st.stop()
 
 # =================================================
-# =============== STEP 2: AUTH =====================
+# =============== STEP 2: PAYMENT =================
+# =================================================
+if st.session_state.step == "payment":
+
+    st.markdown("""
+    <div style="text-align:center; padding:40px; background:#0b1220; border-radius:25px;">
+        <h2 style="color:white;">Payment</h2>
+        <p style="color:#cbd5f5;">Click below to complete payment.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("Pay Now"):
+        st.session_state.step = "auth"
+        st.rerun()
+
+    st.stop()
+
+# =================================================
+# =============== STEP 3: AUTH =====================
 # =================================================
 if st.session_state.step == "auth":
 
@@ -305,7 +321,6 @@ if st.session_state.step == "auth":
         if key.strip().upper() in [k.upper() for k in LICENSE_KEYS[tier]]:
             st.session_state.authenticated = True
             st.session_state.step = "dashboard"
-            st.session_state.nav = "Dashboard"
             st.rerun()
         else:
             st.error("❌ Invalid license key for selected plan")
@@ -314,7 +329,7 @@ if st.session_state.step == "auth":
     st.stop()
 
 # =================================================
-# =============== STEP 3: DASHBOARD ================
+# =============== STEP 4: DASHBOARD ================
 # =================================================
 if not st.session_state.authenticated:
     st.stop()
@@ -395,10 +410,43 @@ if st.session_state.tier == "premium":
     st.pyplot(fig2)
 
     st.markdown("## 🧩 Retention Recommendations")
-    st.write("Top retention actions based on risk score:")
-    st.write("- High Risk: Offer retention bonus or role change")
-    st.write("- Medium Risk: Increase engagement & recognition")
-    st.write("- Low Risk: Keep motivation high")
+
+    st.markdown("### Immediate Actions")
+    st.write("- Talk to employee within 24 hours")
+    st.write("- Offer immediate retention bonus or incentive")
+    st.write("- Assign a mentor/manager meeting")
+
+    st.markdown("### Short-term Actions")
+    st.write("- Offer role rotation or new project")
+    st.write("- Improve work-life balance & reduce overtime")
+    st.write("- Provide recognition and career guidance")
+
+    st.markdown("### Long-term Actions")
+    st.write("- Plan salary hike/bonus in next 3 months")
+    st.write("- Design long-term growth plan")
+    st.write("- Provide leadership training & internal promotion")
+
+# ================= RISK SIMULATOR =================
+if st.session_state.tier == "premium":
+    st.markdown("## 🧪 Risk Simulator")
+
+    sim_col1, sim_col2 = st.columns(2)
+
+    with sim_col1:
+        sat = st.slider("Satisfaction Score", 1, 10, 5)
+        eng = st.slider("Engagement Score", 1, 10, 5)
+        hike = st.slider("Months since last hike", 0, 36, 12)
+
+    with sim_col2:
+        ot = st.slider("Overtime hours/month", 0, 80, 10)
+        dist = st.slider("Distance from home (km)", 1, 40, 10)
+
+    sim_data = np.array([[sat, eng, hike, ot, dist]])
+    sim_scaled = scaler.transform(sim_data)
+    sim_risk = model.predict_proba(sim_scaled)[0][1] * 100
+
+    st.metric("Simulated Flight Risk", f"{sim_risk:.0f}%")
+    st.write("Risk Category:", "High" if sim_risk > 69 else "Medium" if sim_risk > 49 else "Low")
 
 st.download_button(
     "⬇️ Download Full Report",

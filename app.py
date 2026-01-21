@@ -5,7 +5,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 
@@ -23,7 +22,10 @@ if "authenticated" not in st.session_state:
 
 # ================= LICENSE KEYS =================
 VALID_KEYS = {
+    # Standard – ₹100 / employee / month
     "SSAI-ENT-9F3K-7Q2M-AZ91": "standard",
+
+    # Premium – ₹150 / employee / month
     "SSAI-PRM-X8LQ-4R2Z-M9KP": "premium"
 }
 
@@ -31,6 +33,7 @@ VALID_KEYS = {
 st.markdown("""
 <style>
 body { background-color:#f6f8fc; }
+
 .card {
     background:white;
     padding:28px;
@@ -38,6 +41,7 @@ body { background-color:#f6f8fc; }
     box-shadow:0 10px 25px rgba(0,0,0,0.08);
     margin-bottom:25px;
 }
+
 .login-box {
     max-width:420px;
     margin:140px auto;
@@ -47,6 +51,7 @@ body { background-color:#f6f8fc; }
     box-shadow:0 16px 40px rgba(0,0,0,0.18);
     text-align:center;
 }
+
 .badge {
     display:inline-block;
     padding:8px 18px;
@@ -54,6 +59,7 @@ body { background-color:#f6f8fc; }
     font-size:15px;
     font-weight:600;
 }
+
 .standard {background:#e8f0fe;color:#1a73e8;}
 .premium {background:#fff4e5;color:#d97706;}
 </style>
@@ -61,6 +67,7 @@ body { background-color:#f6f8fc; }
 
 # ================= ACCESS PAGE =================
 if not st.session_state.authenticated:
+
     st.markdown("""
     <div class="login-box">
         <h2>🔐 StaySmart AI</h2>
@@ -70,23 +77,24 @@ if not st.session_state.authenticated:
         </p>
     """, unsafe_allow_html=True)
 
-    key = st.text_input(
+    license_key = st.text_input(
         "License Key",
         placeholder="SSAI-XXXX-XXXX-XXXX",
         type="password"
     )
 
     if st.button("Verify Access"):
-        if key in VALID_KEYS:
+        if license_key in VALID_KEYS:
             st.session_state.authenticated = True
-            st.session_state.tier = VALID_KEYS[key]
-            st.experimental_rerun()
+            st.session_state.tier = VALID_KEYS[license_key]
+            st.rerun()   # ✅ FIXED
         else:
             st.error("❌ Invalid license key")
 
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
+# ================= DASHBOARD =================
 tier = st.session_state.tier
 
 # ================= HEADER =================
@@ -110,13 +118,14 @@ st.markdown("---")
 # ================= CSV GUIDE =================
 with st.expander("📌 Required CSV Parameters"):
     st.markdown("""
-- satisfaction_score (1–10)  
-- engagement_score (1–10)  
-- last_hike_months  
-- overtime_hours  
-- distance_from_home (km)  
+**Mandatory (recommended for accuracy):**
+- satisfaction_score (1–10)
+- engagement_score (1–10)
+- last_hike_months
+- overtime_hours
+- distance_from_home (km)
 
-Optional but recommended:
+**Optional but useful:**
 - age
 - years_at_company
 - salary_lakhs
@@ -132,101 +141,99 @@ if not file:
 df = pd.read_csv(file)
 df.columns = df.columns.str.lower().str.replace(" ", "_")
 
-# ================= DEFAULTS =================
-defaults = {
-    'satisfaction_score': np.random.randint(1,10,len(df)),
-    'engagement_score': np.random.randint(1,10,len(df)),
-    'last_hike_months': np.random.randint(0,36,len(df)),
-    'overtime_hours': np.random.randint(0,80,len(df)),
-    'distance_from_home': np.random.randint(1,40,len(df)),
-    'age': np.random.randint(22,55,len(df)),
-    'years_at_company': np.random.randint(0,15,len(df)),
-    'salary_lakhs': np.random.uniform(3,20,len(df)),
-    'work_life_balance': np.random.randint(1,5,len(df))
+# ================= SAFE COLUMN HANDLING =================
+required_cols = {
+    'satisfaction_score': (1, 10),
+    'engagement_score': (1, 10),
+    'last_hike_months': (0, 36),
+    'overtime_hours': (0, 80),
+    'distance_from_home': (1, 40)
 }
 
-for c,v in defaults.items():
-    if c not in df.columns:
-        df[c] = v
+for col, (low, high) in required_cols.items():
+    if col not in df.columns:
+        st.warning(f"⚠️ '{col}' not found. Using neutral defaults.")
+        df[col] = np.clip(np.random.normal((low+high)/2, 2, len(df)), low, high)
 
-# ================= RISK ENGINE =================
-risk = (
-    (10-df['satisfaction_score'])*0.25 +
-    (10-df['engagement_score'])*0.25 +
-    (df['last_hike_months']/36)*10*0.2 +
-    (df['overtime_hours']/80)*10*0.15 +
-    (df['distance_from_home']/40)*10*0.15
+# ================= EXPLAINABLE RISK LOGIC =================
+risk_score = (
+    (10 - df['satisfaction_score']) * 0.30 +
+    (10 - df['engagement_score']) * 0.30 +
+    (df['last_hike_months'] / 36) * 10 * 0.20 +
+    (df['overtime_hours'] / 80) * 10 * 0.10 +
+    (df['distance_from_home'] / 40) * 10 * 0.10
 )
 
-df['left'] = (risk > 5.5).astype(int)
+df['left'] = (risk_score > 5.5).astype(int)
 
-features = [
-    'age','years_at_company','satisfaction_score',
-    'last_hike_months','overtime_hours',
-    'engagement_score','salary_lakhs',
-    'work_life_balance','distance_from_home'
-]
-
+features = list(required_cols.keys())
 X = df[features]
 y = df['left']
 
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-model = RandomForestClassifier(n_estimators=120, random_state=42)
+model = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=6,
+    random_state=42
+)
 model.fit(X_scaled, y)
 
-df['flight_risk'] = (model.predict_proba(X_scaled)[:,1]*100).round(0)
+df['flight_risk'] = (model.predict_proba(X_scaled)[:, 1] * 100).round(0)
 
 df['risk_category'] = pd.cut(
     df['flight_risk'],
-    bins=[0,49,69,100],
-    labels=["Low Risk","Medium Risk","High Risk"]
+    bins=[0, 49, 69, 100],
+    labels=["Low Risk", "Medium Risk", "High Risk"]
 )
 
 # ================= KPIs =================
-c1,c2,c3 = st.columns(3)
-c1.metric("Employees", len(df))
-c2.metric("High Risk", (df['risk_category']=="High Risk").sum())
-c3.metric("Avg Risk", f"{df['flight_risk'].mean():.1f}%")
+c1, c2, c3 = st.columns(3)
+c1.metric("Total Employees", len(df))
+c2.metric("High Risk Employees", int((df['risk_category']=="High Risk").sum()))
+c3.metric("Average Flight Risk", f"{df['flight_risk'].mean():.1f}%")
 
-if tier=="premium":
-    cost = (df['risk_category']=="High Risk").sum()*600000
-    st.metric("💰 Attrition Cost Exposure", f"₹{cost/1e7:.2f} Cr")
+if tier == "premium":
+    estimated_cost = (df['risk_category']=="High Risk").sum() * 500000
+    st.metric("Estimated Attrition Exposure", f"₹{estimated_cost/1e7:.2f} Cr")
 
-# ================= VISUALS =================
+# ================= VISUAL =================
 st.markdown("## 📊 Risk Distribution")
 fig, ax = plt.subplots()
 df['risk_category'].value_counts().plot(kind="bar", ax=ax)
 st.pyplot(fig)
 
-if tier=="premium":
-    st.markdown("## 🔍 Key Attrition Drivers")
-    imp = pd.Series(model.feature_importances_, index=features).sort_values()
-    fig2, ax2 = plt.subplots()
-    imp.plot(kind="barh", ax=ax2)
-    st.pyplot(fig2)
-
-# ================= TABLE =================
-st.markdown("## 🚨 Priority Employees")
+# ================= HIGH RISK TABLE =================
+st.markdown("## 🚨 Employees Needing Attention")
 st.dataframe(
     df.sort_values("flight_risk", ascending=False).head(10),
     use_container_width=True
 )
 
-# ================= PREMIUM ACTIONS =================
-if tier=="premium":
-    st.markdown("## 🧠 Recommended Actions")
+# ================= PREMIUM INSIGHTS =================
+if tier == "premium":
+    st.markdown("## 🧠 What’s Driving Attrition")
+    importance = pd.Series(
+        model.feature_importances_,
+        index=features
+    ).sort_values()
+
+    fig2, ax2 = plt.subplots()
+    importance.plot(kind="barh", ax=ax2)
+    st.pyplot(fig2)
+
     st.markdown("""
-- Immediate manager check-ins  
-- Compensation adjustment for top 10% risk  
-- Reduce overtime for burnout-prone roles  
-- Career progression & learning plans  
+**Recommended Actions:**
+- Prioritize employees with low engagement + high overtime  
+- Address delayed salary hikes  
+- Reduce commute burden where possible  
+- Initiate manager check-ins for top 10% risk
 """)
 
 # ================= EXPORT =================
 st.download_button(
-    "⬇️ Download Full Report",
+    "⬇️ Download Full Analysis",
     df.to_csv(index=False),
     "staysmart_ai_report.csv"
 )

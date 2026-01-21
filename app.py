@@ -681,9 +681,23 @@ st.markdown(f"**Model Accuracy:** {acc*100:.2f}%  |  **Cross-Validation:** {cv_a
 
 # ================= CHART =================
 st.markdown("## 📊 Risk Distribution")
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(8,3))
 df['risk_category'].value_counts().plot(kind="bar", ax=ax)
+ax.set_title("Risk Category Distribution")
+ax.set_xlabel("Risk Category")
+ax.set_ylabel("Number of Employees")
+ax.grid(axis='y', linestyle='--', alpha=0.5)
 st.pyplot(fig)
+
+# ================= NEW GRAPH: Risk by Overtime =================
+st.markdown("## 📈 Risk vs Overtime Hours")
+fig2, ax2 = plt.subplots(figsize=(8,3))
+ax2.scatter(df['overtime_hours'], df['flight_risk'])
+ax2.set_title("Overtime vs Flight Risk")
+ax2.set_xlabel("Overtime Hours")
+ax2.set_ylabel("Flight Risk (%)")
+ax2.grid(True, linestyle='--', alpha=0.5)
+st.pyplot(fig2)
 
 # ================= VISUAL INSIGHTS =================
 st.markdown("## 🧠 Insights")
@@ -718,17 +732,82 @@ with ins3:
 
 # Premium-only charts & insights
 if st.session_state.tier == "premium":
-    st.markdown("## 📈 Risk Breakdown")
-    fig2, ax2 = plt.subplots()
-    df['risk_category'].value_counts().plot(kind='pie', autopct='%1.1f%%', ax=ax2)
-    ax2.set_ylabel('')
-    st.pyplot(fig2)
+    st.markdown("## 📈 Risk Breakdown (Premium)")
+    fig3, ax3 = plt.subplots(figsize=(6,4))
+    df['risk_category'].value_counts().plot(kind='pie', autopct='%1.1f%%', ax=ax3)
+    ax3.set_ylabel('')
+    ax3.set_title("Risk Category %")
+    st.pyplot(fig3)
 
-    st.markdown("## 🧩 Retention Recommendations")
+    # ================= NEW GRAPH: Risk by Satisfaction =================
+    st.markdown("## 📊 Satisfaction vs Risk (Premium)")
+    fig4, ax4 = plt.subplots(figsize=(8,3))
+    ax4.scatter(df['satisfaction_score'], df['flight_risk'])
+    ax4.set_title("Satisfaction vs Flight Risk")
+    ax4.set_xlabel("Satisfaction Score")
+    ax4.set_ylabel("Flight Risk (%)")
+    ax4.grid(True, linestyle='--', alpha=0.5)
+    st.pyplot(fig4)
+
+    st.markdown("## 🧩 Retention Recommendations (Premium)")
     st.write("Top retention actions based on risk score:")
-    st.write("- High Risk: Offer retention bonus or role change")
-    st.write("- Medium Risk: Increase engagement & recognition")
-    st.write("- Low Risk: Keep motivation high")
+
+    st.markdown("### 🔴 High Risk (70%+)")
+    st.write("- Immediate retention bonus or compensation review")
+    st.write("- Immediate 1:1 manager meeting (within 24 hrs)")
+    st.write("- Role change or internal transfer")
+    st.write("- Flexible work hours or work-from-home options")
+    st.write("- Fast-track promotion or career path clarity")
+    st.write("- Offer training/skill upgrade plan")
+    st.write("- Reduce workload or redistribute tasks")
+    st.write("- Provide mentorship & leadership support")
+
+    st.markdown("### 🟠 Medium Risk (50% - 69%)")
+    st.write("- Short-term recognition & rewards")
+    st.write("- Improve engagement through team events")
+    st.write("- Provide feedback & growth plan")
+    st.write("- Increase visibility in projects")
+    st.write("- Offer flexible schedule for 2-4 weeks")
+    st.write("- Mentorship program enrollment")
+    st.write("- Quarterly salary review / appraisal")
+    st.write("- Provide skill-building training")
+
+    st.markdown("### 🟢 Low Risk (Below 50%)")
+    st.write("- Keep motivation high with recognition")
+    st.write("- Encourage internal growth & promotions")
+    st.write("- Provide continuous learning & training")
+    st.write("- Maintain transparent communication")
+    st.write("- Improve employee wellness & work-life balance")
+    st.write("- Ensure career path clarity")
+
+    # ================= FLIGHT RISK SIMULATION =================
+    st.markdown("## ✨ Flight Risk Simulation (Premium)")
+    st.write("Adjust values and simulate the employee flight risk.")
+
+    sim_satisfaction = st.slider("Satisfaction Score (1-10)", 1, 10, 6)
+    sim_engagement = st.slider("Engagement Score (1-10)", 1, 10, 6)
+    sim_hike = st.slider("Months since last hike", 0, 36, 12)
+    sim_overtime = st.slider("Overtime hours/month", 0, 80, 10)
+    sim_distance = st.slider("Distance from home (km)", 1, 40, 10)
+
+    sim_df = pd.DataFrame([{
+        "satisfaction_score": sim_satisfaction,
+        "engagement_score": sim_engagement,
+        "last_hike_months": sim_hike,
+        "overtime_hours": sim_overtime,
+        "distance_from_home": sim_distance
+    }])
+
+    sim_scaled = scaler.transform(sim_df)
+    sim_risk = model.predict_proba(sim_scaled)[0][1] * 100
+
+    st.markdown(f"### **Predicted Flight Risk: {sim_risk:.0f}%**")
+    if sim_risk >= 70:
+        st.warning("High Risk — Immediate retention action required")
+    elif sim_risk >= 50:
+        st.info("Medium Risk — Take action soon")
+    else:
+        st.success("Low Risk — Maintain engagement")
 
 st.download_button(
     "⬇️ Download Full Report",

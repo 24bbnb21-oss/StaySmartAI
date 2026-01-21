@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split, cross_val_score
 import matplotlib.pyplot as plt
 
 # ================= PAGE CONFIG =================
@@ -364,21 +365,30 @@ if st.session_state.step == "plan":
     </div>
     """, unsafe_allow_html=True)
 
-    # Add a small chart image
+    # ======= NEW SECTION IN PLACE OF SAMPLE GRAPH =======
     st.markdown("""
-    <div class="compare fade">
-        <h3>Sample Risk Distribution</h3>
+    <div class="compare fade" style="margin-top:30px;">
+        <h3>Why StaySmart AI?</h3>
+        <p style="color:#cbd5f5; font-size:16px;">
+            StaySmart AI provides HR teams with data-driven attrition prediction, helping you retain your best talent.
+            Get instant insights, clear risk indicators, and actionable retention recommendations.
+        </p>
+        <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap; margin-top:15px;">
+            <div style="background:rgba(255,255,255,0.08); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.12); width:220px;">
+                <h4 style="color:#fff; margin:0;">📌 Risk Prediction</h4>
+                <p style="color:#cbd5f5; margin:8px 0 0 0;">Predict flight risk in real-time.</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.08); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.12); width:220px;">
+                <h4 style="color:#fff; margin:0;">🧠 AI Insights</h4>
+                <p style="color:#cbd5f5; margin:8px 0 0 0;">Understand WHY employees leave.</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.08); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.12); width:220px;">
+                <h4 style="color:#fff; margin:0;">🛡️ Retention Tips</h4>
+                <p style="color:#cbd5f5; margin:8px 0 0 0;">Actionable steps to retain talent.</p>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
-
-    # matplotlib chart
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots(figsize=(6,2))
-    ax.bar([1,2,3], [35, 50, 15])
-    ax.set_xticks([1,2,3])
-    ax.set_xticklabels(["Low", "Medium", "High"])
-    ax.set_title("Risk Example")
-    st.pyplot(fig)
 
     # ================= TRUST LOGOS =================
     st.markdown("""
@@ -400,6 +410,9 @@ if st.session_state.step == "plan":
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # ======= ADD SPACE BEFORE PLANS =======
+    st.markdown("<br><br>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
@@ -623,6 +636,7 @@ for col,(lo,hi) in required_cols.items():
     if col not in df.columns:
         df[col] = np.clip(np.random.normal((lo+hi)/2,2,len(df)), lo, hi)
 
+# MODEL TARGET (risk-based)
 risk_score = (
     (10-df['satisfaction_score'])*0.3 +
     (10-df['engagement_score'])*0.3 +
@@ -634,11 +648,20 @@ risk_score = (
 df['left'] = (risk_score > 5.5).astype(int)
 
 X = df[list(required_cols.keys())]
+y = df['left']
+
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-model = RandomForestClassifier(n_estimators=100, max_depth=6, random_state=42)
-model.fit(X_scaled, df['left'])
+# TRAIN TEST SPLIT FOR BETTER ACCURACY
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+model = RandomForestClassifier(n_estimators=200, max_depth=8, random_state=42)
+model.fit(X_train, y_train)
+
+# Accuracy
+acc = model.score(X_test, y_test)
+cv_acc = cross_val_score(model, X_scaled, y, cv=5).mean()
 
 df['flight_risk'] = (model.predict_proba(X_scaled)[:,1]*100).round(0)
 df['risk_category'] = pd.cut(df['flight_risk'], [0,49,69,100], labels=["Low","Medium","High"])
@@ -652,6 +675,9 @@ c1,c2,c3 = st.columns(3)
 c1.metric("Employees", len(df))
 c2.metric("High Risk", int((df['risk_category']=="High").sum()))
 c3.metric("Avg Risk", f"{df['flight_risk'].mean():.1f}%")
+
+# Accuracy Metrics
+st.markdown(f"**Model Accuracy:** {acc*100:.2f}%  |  **Cross-Validation:** {cv_acc*100:.2f}%")
 
 # ================= CHART =================
 st.markdown("## 📊 Risk Distribution")
@@ -709,6 +735,17 @@ st.download_button(
     df.to_csv(index=False),
     "staysmart_ai_report.csv"
 )
+
+# ================= ABOUT US SECTION =================
+st.markdown("""
+<div class="compare fade" style="margin-top:30px;">
+    <h3>About Us</h3>
+    <p style="color:#cbd5f5; font-size:16px;">
+        StaySmart AI is built for modern enterprises to help HR teams predict attrition risk and retain top talent.
+        Our AI analyzes employee engagement, satisfaction, overtime and more to provide actionable insights.
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
 # ================= ABOUT US FOOTER =================
 st.markdown("""

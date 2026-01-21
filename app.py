@@ -45,6 +45,7 @@ body { background:#0b1220; }
     font-size:52px;
     font-weight:800;
     color:white;
+    animation: fadeIn 1s ease-in-out;
 }
 
 .hero p {
@@ -59,11 +60,12 @@ body { background:#0b1220; }
     border-radius:28px;
     box-shadow:0 30px 70px rgba(0,0,0,0.35);
     height:100%;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .plan-card:hover {
     transform: translateY(-10px);
+    box-shadow:0 40px 90px rgba(0,0,0,0.45);
 }
 
 .plan-title {
@@ -112,6 +114,7 @@ li {
     padding:28px;
     border-radius:20px;
     margin-top:30px;
+    animation: fadeIn 1.5s ease-in-out;
 }
 
 .req-box h4 {

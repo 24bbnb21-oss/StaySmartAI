@@ -24,6 +24,8 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 if "nav" not in st.session_state:
     st.session_state.nav = "Home"
+if "paid" not in st.session_state:
+    st.session_state.paid = False  # NEW: payment state
 
 # ================= LICENSE KEYS =================
 LICENSE_KEYS = {
@@ -158,8 +160,41 @@ li {
     color:#fca5a5;
     font-weight:700;
 }
+
+/* NEW: Cool animated background */
+.bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: radial-gradient(circle at 20% 20%, rgba(124,58,237,0.35), transparent 40%),
+              radial-gradient(circle at 80% 30%, rgba(34,211,238,0.25), transparent 45%),
+              radial-gradient(circle at 50% 80%, rgba(16,185,129,0.22), transparent 50%),
+              linear-gradient(135deg, #0b1220 0%, #0a0f1a 100%);
+  animation: bgmove 10s infinite alternate;
+}
+
+@keyframes bgmove {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.02); }
+}
+
+/* NEW: Premium insight boxes */
+.insight-box {
+    border-radius:20px;
+    padding:20px;
+    color:white;
+    margin-top:15px;
+}
+.immediate { background:#ef4444; }
+.short { background:#f59e0b; }
+.long { background:#10b981; }
 </style>
 """, unsafe_allow_html=True)
+
+st.markdown('<div class="bg"></div>', unsafe_allow_html=True)  # NEW
 
 # =================================================
 # =============== STEP 1: PLAN SELECT ===============
@@ -295,6 +330,24 @@ if st.session_state.step == "auth":
     </div>
     """, unsafe_allow_html=True)
 
+    # ================= PAYMENT GATEWAY (REALISTIC UI) =================
+    st.markdown("## 🔒 Payment")
+    if not st.session_state.paid:
+        st.markdown("**Enter card details to proceed (Simulated Gateway)**")
+        name = st.text_input("Name on Card")
+        card = st.text_input("Card Number", max_chars=16)
+        expiry = st.text_input("Expiry (MM/YY)", max_chars=5)
+        cvv = st.text_input("CVV", max_chars=3, type="password")
+
+        if st.button("Pay Now"):
+            if len(card) == 16 and len(expiry) == 5 and len(cvv) == 3 and name.strip() != "":
+                st.session_state.paid = True
+                st.success("✅ Payment successful! Proceed to license verification.")
+            else:
+                st.error("❌ Payment failed. Check card details and try again.")
+    else:
+        st.success("Payment already completed. You can now verify your license key.")
+
     key = st.text_input(
         "Enter License Key",
         placeholder="SSAI-XXXX-XXXX-XXXX",
@@ -318,6 +371,16 @@ if st.session_state.step == "auth":
 # =================================================
 if not st.session_state.authenticated:
     st.stop()
+
+# ================= NAV + LOGOUT =================
+st.sidebar.title("Navigation")
+if st.sidebar.button("Logout / Reset"):
+    st.session_state.step = "plan"
+    st.session_state.tier = None
+    st.session_state.authenticated = False
+    st.session_state.nav = "Home"
+    st.session_state.paid = False
+    st.experimental_rerun()
 
 st.markdown("""
 <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);
@@ -394,11 +457,52 @@ if st.session_state.tier == "premium":
     ax2.set_ylabel('')
     st.pyplot(fig2)
 
+    # ================= PREMIUM INSIGHTS =================
     st.markdown("## 🧩 Retention Recommendations")
-    st.write("Top retention actions based on risk score:")
-    st.write("- High Risk: Offer retention bonus or role change")
-    st.write("- Medium Risk: Increase engagement & recognition")
-    st.write("- Low Risk: Keep motivation high")
+
+    st.markdown("""
+    <div class="insight-box immediate">
+        <h4>Immediate Actions</h4>
+        <ul>
+            <li>Offer retention bonus or salary adjustment</li>
+            <li>Provide role change or project transfer</li>
+            <li>Address immediate workload stress</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="insight-box short">
+        <h4>Short-Term Actions</h4>
+        <ul>
+            <li>Increase recognition & feedback</li>
+            <li>Improve engagement through team events</li>
+            <li>Offer mentorship & career guidance</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="insight-box long">
+        <h4>Long-Term Actions</h4>
+        <ul>
+            <li>Review compensation structure & hike cycle</li>
+            <li>Implement leadership development</li>
+            <li>Improve company culture & retention programs</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ================= RISK SIMULATION (PREMIUM ONLY) =================
+    st.markdown("## 🔥 Risk Simulation (Premium)")
+    sim_months = st.slider("Simulation Months", 3, 12, 6)
+    sim_risk = np.linspace(df['flight_risk'].mean(), df['flight_risk'].mean() + 10, sim_months)
+    fig3, ax3 = plt.subplots()
+    ax3.plot(range(1, sim_months + 1), sim_risk, marker='o')
+    ax3.set_title("Risk Trend Over Time")
+    ax3.set_xlabel("Months")
+    ax3.set_ylabel("Avg Risk %")
+    st.pyplot(fig3)
 
 st.download_button(
     "⬇️ Download Full Report",

@@ -311,6 +311,12 @@ li {
     cursor:pointer;
 }
 
+.footer {
+    text-align:center;
+    margin-top:40px;
+    color:#94a3b8;
+    font-size:14px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -333,29 +339,63 @@ if st.session_state.step == "plan":
     </div>
     """, unsafe_allow_html=True)
 
-    # ======= NEW FRONT PAGE CONTENT =======
+    # ======= NEW PROFESSIONAL FRONT PAGE CONTENT =======
     st.markdown("""
     <div class="req-box fade" style="max-width:1000px;margin:auto;">
-        <h4>✨ What StaySmart AI Does</h4>
+        <h4>What StaySmart AI Provides</h4>
         <p style="color:#cbd5f5">
-        StaySmart AI analyzes employee data and predicts attrition risk in real-time.
-        It helps HR teams proactively retain talent, reduce turnover cost, and improve employee engagement.
+        StaySmart AI uses employee data to predict attrition risk and provide actionable insights to HR teams.
+        This helps reduce turnover cost, improve employee engagement, and retain top performers.
         </p>
         <div class="actions">
             <div class="action-box">
-                <h4>📌 Predict</h4>
-                <p>Detect flight risk before it happens using AI-based scoring.</p>
-                <span class="tag tag-high">High Accuracy</span>
+                <h4>1) Data Ingestion</h4>
+                <p>Upload employee CSV or integrate HRMS data</p>
             </div>
             <div class="action-box">
-                <h4>🧠 Analyze</h4>
-                <p>Understand why employees leave with clear insights.</p>
-                <span class="tag tag-med">Smart Insights</span>
+                <h4>2) AI Risk Scoring</h4>
+                <p>Real-time attrition risk prediction</p>
             </div>
             <div class="action-box">
-                <h4>🛡️ Retain</h4>
-                <p>Take targeted actions to keep top performers.</p>
-                <span class="tag tag-low">Retention</span>
+                <h4>3) Retention Actions</h4>
+                <p>Get recommendations to retain high performers</p>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Add a small chart image
+    st.markdown("""
+    <div class="compare fade">
+        <h3>Sample Risk Distribution</h3>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # matplotlib chart
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots(figsize=(6,2))
+    ax.bar([1,2,3], [35, 50, 15])
+    ax.set_xticks([1,2,3])
+    ax.set_xticklabels(["Low", "Medium", "High"])
+    ax.set_title("Risk Example")
+    st.pyplot(fig)
+
+    # ================= TRUST LOGOS =================
+    st.markdown("""
+    <div class="compare fade">
+        <h3>Trusted By</h3>
+        <div style="display:flex; gap:25px; justify-content:center; flex-wrap:wrap;">
+            <div style="text-align:center; padding:15px;">
+                <img src="https://img.icons8.com/fluency/48/000000/briefcase.png" />
+                <p>Enterprise</p>
+            </div>
+            <div style="text-align:center; padding:15px;">
+                <img src="https://img.icons8.com/fluency/48/000000/company.png" />
+                <p>HR Teams</p>
+            </div>
+            <div style="text-align:center; padding:15px;">
+                <img src="https://img.icons8.com/fluency/48/000000/analytics.png" />
+                <p>Data Teams</p>
             </div>
         </div>
     </div>
@@ -457,7 +497,8 @@ if st.session_state.step == "plan":
 if st.session_state.step == "auth":
 
     tier = st.session_state.tier
-    price = "₹100 / employee / month" if tier == "standard" else "₹150 / employee / month"
+    price_per_employee = 100 if tier == "standard" else 150
+    price = f"₹{price_per_employee} / employee / month"
 
     st.markdown("""
     <div class="logo">
@@ -497,34 +538,31 @@ if st.session_state.step == "auth":
         <p style="color:#cbd5f5">
         Enter company billing details to proceed. (Simulation only)
         </p>
-        <input placeholder="Company Name" id="company_name"/>
-        <input placeholder="Company Email" id="company_email" style="margin-top:10px;"/>
-        <input placeholder="GSTIN (Optional)" id="company_gstin" style="margin-top:10px;"/>
-        <input placeholder="Subscription Duration (months)" id="duration" style="margin-top:10px;"/>
-        <div style="margin-top:15px;">
-            <button onclick="document.getElementById('payment_status').innerText='Processing...'; setTimeout(()=>{document.getElementById('payment_status').innerText='Payment Successful ✓';}, 900)">
-                Pay Now
-            </button>
-        </div>
-        <p id="payment_status" style="margin-top:10px;color:#a7f3d0;font-weight:700;"></p>
+    """, unsafe_allow_html=True)
+
+    employees = st.number_input("Number of Employees", min_value=1, value=10)
+    months = st.number_input("Subscription Duration (months)", min_value=1, value=3)
+
+    total_amount = employees * months * price_per_employee
+
+    st.markdown(f"""
+    <div style="margin-top:10px; color:#cbd5f5;">
+        <b>Payment Summary:</b><br>
+        Employees: {employees} <br>
+        Duration: {months} months <br>
+        <b>Total Amount:</b> ₹{total_amount}
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
-    <script>
-    const btn = document.querySelector("button");
-    btn.addEventListener("click", () => {
-        setTimeout(() => {
-            window.dispatchEvent(new Event('payment_done'));
-        }, 1000);
-    });
-    </script>
-    """, unsafe_allow_html=True)
+    company_name = st.text_input("Company Name")
+    company_email = st.text_input("Company Email")
+    gstin = st.text_input("GSTIN (Optional)")
+
+    if st.button("Pay Now"):
+        st.session_state.paid = True
+        st.success("Payment Successful ✓")
 
     # This ensures license key appears only after payment is done
-    if st.button("I have completed payment"):
-        st.session_state.paid = True
-
     if st.session_state.paid:
         key = st.text_input(
             "Enter License Key",
@@ -672,9 +710,11 @@ st.download_button(
     "staysmart_ai_report.csv"
 )
 
-# ================= COPYRIGHT FOOTER =================
+# ================= ABOUT US FOOTER =================
 st.markdown("""
-<div style="text-align:center; margin-top:40px; color:#94a3b8; font-size:14px;">
+<div class="footer">
+<b>About Us</b><br>
+StaySmart AI is a HR intelligence tool built for modern enterprises. Our AI predicts attrition risk and helps HR teams retain top talent using data-driven insights.<br>
 © 2026 EXQ-16. All Rights Reserved.
 </div>
 """, unsafe_allow_html=True)

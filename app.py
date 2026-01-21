@@ -745,6 +745,29 @@ if st.session_state.tier == "premium":
     ax2.set_title("Risk Category Share")
     st.pyplot(fig2)
 
+    st.markdown("## 💰 Attrition Cost Estimation")
+
+    # Estimate attrition cost (simple calculation)
+    avg_salary = st.number_input("Average Monthly Salary (₹)", min_value=10000, value=50000)
+    avg_months_to_replace = st.number_input("Avg Months to Replace Employee", min_value=1, value=2)
+    replacement_cost_percent = st.slider("Replacement Cost % of Salary", 10, 100, 30)
+
+    avg_replacement_cost = (avg_salary * avg_months_to_replace * replacement_cost_percent) / 100
+
+    high_risk_count = int((df['risk_category']=="High").sum())
+    est_total_cost = high_risk_count * avg_replacement_cost
+
+    st.markdown(f"""
+    <div class="compare fade">
+        <h3>Estimated Attrition Cost</h3>
+        <p style="color:#cbd5f5; font-size:16px; line-height:1.7;">
+            High Risk Employees: <b>{high_risk_count}</b><br>
+            Estimated Cost per Replacement: <b>₹{avg_replacement_cost:,.0f}</b><br>
+            <b>Total Estimated Attrition Cost: ₹{est_total_cost:,.0f}</b>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.markdown("## 🧩 Retention Recommendations")
 
     st.write("### 🔥 Immediate Actions (Within 24-48 hours)")

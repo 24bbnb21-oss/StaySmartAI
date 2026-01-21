@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""StaySmart AI – Secure, Tiered & Professional HR Analytics"""
+"""StaySmart AI – Enterprise HR Intelligence Platform"""
 
 import streamlit as st
 import pandas as pd
@@ -16,162 +16,149 @@ st.set_page_config(
     page_icon="📊"
 )
 
+# ================= SESSION STATE =================
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+    st.session_state.tier = None
+
+# ================= LICENSE KEYS =================
+VALID_KEYS = {
+    "SSAI-ENT-9F3K-7Q2M-AZ91": "standard",
+    "SSAI-PRM-X8LQ-4R2Z-M9KP": "premium"
+}
+
 # ================= GLOBAL STYLES =================
 st.markdown("""
 <style>
-body { background-color: #f6f8fc; }
-
-.section {
-    background: white;
-    padding: 28px;
-    border-radius: 18px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-    margin-bottom: 25px;
+body { background-color:#f6f8fc; }
+.card {
+    background:white;
+    padding:28px;
+    border-radius:18px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.08);
+    margin-bottom:25px;
 }
-
+.login-box {
+    max-width:420px;
+    margin:140px auto;
+    background:white;
+    padding:40px;
+    border-radius:22px;
+    box-shadow:0 16px 40px rgba(0,0,0,0.18);
+    text-align:center;
+}
 .badge {
     display:inline-block;
-    padding:6px 14px;
-    border-radius:20px;
-    font-size:14px;
+    padding:8px 18px;
+    border-radius:22px;
+    font-size:15px;
     font-weight:600;
 }
 .standard {background:#e8f0fe;color:#1a73e8;}
 .premium {background:#fff4e5;color:#d97706;}
-
-.login-container {
-    max-width: 420px;
-    margin: 120px auto;
-    background: white;
-    padding: 38px;
-    border-radius: 20px;
-    box-shadow: 0 14px 35px rgba(0,0,0,0.15);
-    text-align: center;
-}
-.login-title {
-    font-size: 26px;
-    font-weight: 700;
-    margin-bottom: 6px;
-}
-.login-sub {
-    color: #6b7280;
-    font-size: 15px;
-    margin-bottom: 26px;
-}
 </style>
 """, unsafe_allow_html=True)
 
-# ================= ACCESS CONTROL =================
-VALID_ACCESS_IDS = {
-    "SSAI-STD-2026": "standard",
-    "SSAI-PRM-2026": "premium"
-}
+# ================= ACCESS PAGE =================
+if not st.session_state.authenticated:
+    st.markdown("""
+    <div class="login-box">
+        <h2>🔐 StaySmart AI</h2>
+        <p style="color:#6b7280">
+        Enterprise HR Intelligence Platform<br>
+        Authorized Access Only
+        </p>
+    """, unsafe_allow_html=True)
 
-st.markdown("""
-<div class="login-container">
-    <div class="login-title">🔐 StaySmart AI Access</div>
-    <div class="login-sub">
-        Restricted analytics platform for authorized HR teams.<br>
-        Please enter your access ID.
-    </div>
-""", unsafe_allow_html=True)
+    key = st.text_input(
+        "License Key",
+        placeholder="SSAI-XXXX-XXXX-XXXX",
+        type="password"
+    )
 
-access_id = st.text_input(
-    "Access ID",
-    placeholder="e.g. SSAI-PRM-2026",
-    type="password"
-)
+    if st.button("Verify Access"):
+        if key in VALID_KEYS:
+            st.session_state.authenticated = True
+            st.session_state.tier = VALID_KEYS[key]
+            st.experimental_rerun()
+        else:
+            st.error("❌ Invalid license key")
 
-st.markdown("</div>", unsafe_allow_html=True)
-
-if not access_id:
+    st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
-if access_id not in VALID_ACCESS_IDS:
-    st.error("❌ Invalid Access ID. You do not have permission to access this application.")
-    st.stop()
-
-service_tier = VALID_ACCESS_IDS[access_id]
+tier = st.session_state.tier
 
 # ================= HEADER =================
 st.markdown("""
 <div style="background:linear-gradient(135deg,#4f46e5,#9333ea);
 padding:36px;border-radius:22px;margin-bottom:30px">
-<h1 style="color:white;margin-bottom:6px;">StaySmart AI</h1>
-<p style="color:#e0e7ff;font-size:18px;">
+<h1 style="color:white;">StaySmart AI</h1>
+<p style="color:#e0e7ff;font-size:18px">
 Predict • Prevent • Retain Talent
 </p>
 </div>
 """, unsafe_allow_html=True)
 
-# ================= SERVICE BADGE =================
-if service_tier == "standard":
-    st.markdown('<span class="badge standard">🟢 Standard Plan Active</span>', unsafe_allow_html=True)
+if tier == "standard":
+    st.markdown('<span class="badge standard">🟢 Standard Plan — ₹100 / employee / month</span>', unsafe_allow_html=True)
 else:
-    st.markdown('<span class="badge premium">👑 Premium Plan Active</span>', unsafe_allow_html=True)
+    st.markdown('<span class="badge premium">👑 Premium Plan — ₹150 / employee / month</span>', unsafe_allow_html=True)
 
 st.markdown("---")
 
 # ================= CSV GUIDE =================
-with st.expander("📌 CSV Upload Guidelines (HR Friendly)"):
+with st.expander("📌 Required CSV Parameters"):
     st.markdown("""
-**Required Columns**
-- satisfaction_score (1–10)
-- engagement_score (1–10)
-- last_hike_months
-- overtime_hours
+- satisfaction_score (1–10)  
+- engagement_score (1–10)  
+- last_hike_months  
+- overtime_hours  
+- distance_from_home (km)  
 
-**Recommended Columns**
+Optional but recommended:
 - age
 - years_at_company
 - salary_lakhs
 - work_life_balance (1–5)
-- distance_from_home (km)
-
-Missing fields are auto-filled safely.
 """)
 
 # ================= FILE UPLOAD =================
-st.markdown("## 📂 Upload Employee Dataset")
-uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
-
-if not uploaded_file:
-    st.info("⬆️ Upload a CSV file to start analysis.")
+file = st.file_uploader("📂 Upload Employee Dataset", type=["csv"])
+if not file:
+    st.info("Upload a CSV to continue")
     st.stop()
 
-df = pd.read_csv(uploaded_file)
+df = pd.read_csv(file)
 df.columns = df.columns.str.lower().str.replace(" ", "_")
 
-st.success("✅ Dataset uploaded successfully")
-st.dataframe(df.head(), use_container_width=True)
-
-# ================= SAFE DEFAULTS =================
+# ================= DEFAULTS =================
 defaults = {
-    'satisfaction_score': np.random.randint(1, 10, len(df)),
-    'engagement_score': np.random.randint(1, 10, len(df)),
-    'last_hike_months': np.random.randint(0, 36, len(df)),
-    'overtime_hours': np.random.randint(0, 80, len(df)),
-    'age': np.random.randint(22, 55, len(df)),
-    'years_at_company': np.random.randint(0, 15, len(df)),
-    'salary_lakhs': np.random.uniform(3, 20, len(df)),
-    'work_life_balance': np.random.randint(1, 5, len(df)),
-    'distance_from_home': np.random.randint(1, 40, len(df))
+    'satisfaction_score': np.random.randint(1,10,len(df)),
+    'engagement_score': np.random.randint(1,10,len(df)),
+    'last_hike_months': np.random.randint(0,36,len(df)),
+    'overtime_hours': np.random.randint(0,80,len(df)),
+    'distance_from_home': np.random.randint(1,40,len(df)),
+    'age': np.random.randint(22,55,len(df)),
+    'years_at_company': np.random.randint(0,15,len(df)),
+    'salary_lakhs': np.random.uniform(3,20,len(df)),
+    'work_life_balance': np.random.randint(1,5,len(df))
 }
 
-for col, values in defaults.items():
-    if col not in df.columns:
-        df[col] = values
+for c,v in defaults.items():
+    if c not in df.columns:
+        df[c] = v
 
-# ================= TARGET ENGINE =================
-risk_score = (
-    (10 - df['satisfaction_score']) * 0.25 +
-    (10 - df['engagement_score']) * 0.25 +
-    (df['last_hike_months'] / 36) * 10 * 0.2 +
-    (df['overtime_hours'] / 80) * 10 * 0.15 +
-    (df['distance_from_home'] / 40) * 10 * 0.15
+# ================= RISK ENGINE =================
+risk = (
+    (10-df['satisfaction_score'])*0.25 +
+    (10-df['engagement_score'])*0.25 +
+    (df['last_hike_months']/36)*10*0.2 +
+    (df['overtime_hours']/80)*10*0.15 +
+    (df['distance_from_home']/40)*10*0.15
 )
 
-df['left'] = (risk_score > 5.5).astype(int)
+df['left'] = (risk > 5.5).astype(int)
 
 features = [
     'age','years_at_company','satisfaction_score',
@@ -183,90 +170,63 @@ features = [
 X = df[features]
 y = df['left']
 
-# ================= MODEL =================
-X_train, _, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=42)
 scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
+X_scaled = scaler.fit_transform(X)
 
 model = RandomForestClassifier(n_estimators=120, random_state=42)
-model.fit(X_train, y_train)
+model.fit(X_scaled, y)
 
-proba = model.predict_proba(scaler.transform(X))
-df['flight_risk'] = (proba[:, -1] * 100).round(0)
+df['flight_risk'] = (model.predict_proba(X_scaled)[:,1]*100).round(0)
 
-# ================= LABELS =================
-def label_risk(score):
-    if score >= 70:
-        return "High Risk"
-    elif score >= 50:
-        return "Medium Risk"
-    return "Low Risk"
-
-df['risk_category'] = df['flight_risk'].apply(label_risk)
-
-# ================= REASONS =================
-def reasons(row):
-    r = []
-    if row['satisfaction_score'] < 5: r.append("Low satisfaction")
-    if row['engagement_score'] < 5: r.append("Low engagement")
-    if row['last_hike_months'] > 18: r.append("Delayed hike")
-    if row['overtime_hours'] > 50: r.append("Excess overtime")
-    if row['distance_from_home'] > 25: r.append("Long commute")
-    return ", ".join(r[:3])
-
-df['risk_reasons'] = df.apply(reasons, axis=1)
+df['risk_category'] = pd.cut(
+    df['flight_risk'],
+    bins=[0,49,69,100],
+    labels=["Low Risk","Medium Risk","High Risk"]
+)
 
 # ================= KPIs =================
-st.markdown("## 📊 Executive Snapshot")
-k1, k2, k3 = st.columns(3)
-k1.metric("Total Employees", len(df))
-k2.metric("High Risk Employees", (df['risk_category']=="High Risk").sum())
-k3.metric("Average Flight Risk", f"{df['flight_risk'].mean():.1f}%")
+c1,c2,c3 = st.columns(3)
+c1.metric("Employees", len(df))
+c2.metric("High Risk", (df['risk_category']=="High Risk").sum())
+c3.metric("Avg Risk", f"{df['flight_risk'].mean():.1f}%")
 
-if service_tier == "premium":
-    cost = (df['risk_category']=="High Risk").sum() * 600000
-    st.metric("💰 Attrition Cost at Risk", f"₹{cost/1e7:.2f} Cr")
-else:
-    st.info("🔒 Cost impact available in Premium")
+if tier=="premium":
+    cost = (df['risk_category']=="High Risk").sum()*600000
+    st.metric("💰 Attrition Cost Exposure", f"₹{cost/1e7:.2f} Cr")
 
-# ================= VISUAL =================
-st.markdown("## 📈 Risk Distribution")
+# ================= VISUALS =================
+st.markdown("## 📊 Risk Distribution")
 fig, ax = plt.subplots()
 df['risk_category'].value_counts().plot(kind="bar", ax=ax)
-ax.set_xlabel("")
-ax.set_ylabel("Employees")
 st.pyplot(fig)
 
-# ================= TOP EMPLOYEES =================
-st.markdown("## 🚨 Employees Most Likely to Leave")
+if tier=="premium":
+    st.markdown("## 🔍 Key Attrition Drivers")
+    imp = pd.Series(model.feature_importances_, index=features).sort_values()
+    fig2, ax2 = plt.subplots()
+    imp.plot(kind="barh", ax=ax2)
+    st.pyplot(fig2)
+
+# ================= TABLE =================
+st.markdown("## 🚨 Priority Employees")
 st.dataframe(
-    df.sort_values("flight_risk", ascending=False)[
-        ['flight_risk','risk_category','risk_reasons'] + features
-    ].head(10),
+    df.sort_values("flight_risk", ascending=False).head(10),
     use_container_width=True
 )
 
-# ================= RECOMMENDATIONS =================
-if service_tier == "premium":
-    st.markdown("## 🧠 AI-Powered HR Recommendations")
+# ================= PREMIUM ACTIONS =================
+if tier=="premium":
+    st.markdown("## 🧠 Recommended Actions")
     st.markdown("""
-**Immediate**
-- Manager 1-on-1 discussions  
-- Compensation & role review  
-- Reduce burnout indicators  
-
-**Strategic**
-- Clear career paths  
-- Monthly engagement pulses  
-- Leadership coaching
+- Immediate manager check-ins  
+- Compensation adjustment for top 10% risk  
+- Reduce overtime for burnout-prone roles  
+- Career progression & learning plans  
 """)
-else:
-    st.info("🔒 Upgrade to Premium for detailed HR recommendations")
 
-# ================= DOWNLOAD =================
-st.markdown("## ⬇️ Export Results")
+# ================= EXPORT =================
 st.download_button(
-    "Download Full Analysis CSV",
+    "⬇️ Download Full Report",
     df.to_csv(index=False),
-    file_name="staysmart_ai_results.csv"
+    "staysmart_ai_report.csv"
 )
